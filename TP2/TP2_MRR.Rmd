@@ -1,0 +1,141 @@
+---
+title: "TP2 MRR"
+author: "Noah KWA MOUTOME - Victor TAN"
+date: "2023-10-31"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#IV. Cookies Study
+
+### Imports
+```{r}
+cookies_data <- read.csv("cookies.csv")
+```
+
+### Features extraction
+
+For each line (meaning, for each cookie), we will use the different spectral values to compute: the mean, the standard deviation, the slope, the minimum and the maximum. 
+
+```{r}
+# Computation (mean, standard deviation, minimum and maximum)
+
+cookies_data$mean <- rowMeans(cookies_data[, 2:701])
+cookies_data$stDev <- apply(cookies_data[, 2:701], 1, sd)
+cookies_data$min <- apply(cookies_data[, 2:701], 1, min)
+cookies_data$max <- apply(cookies_data[, 2:701], 1, max)
+
+
+# Computation (slope)
+
+# Function: compute_slope
+# @param: spectrum_values of a cookie (here, column 2 to 701)
+# @return: slope of the spectrum curve for a cookie
+compute_slope <- function(spectrum_values) {
+  pos <- 1:length(spectrum_values)
+  lm_model <- lm(spectrum_values ~ pos)
+  slope <- coef(lm_model)[2]
+  return(slope)
+}
+
+cookies_data$slope <- apply(cookies_data[, 2:701], 1, compute_slope) 
+
+
+# Display of the new columns
+head(cookies_data[,702:706])
+```
+
+### Regression model
+
+Now, we have the different features of the spectra. 
+
+```{r}
+# Only features and fat values are retrieved
+
+cookies_features <- cookies_data[c("fat", "mean", "stDev", "slope", "min", "max")]
+head(cookies_features)
+
+X <- as.matrix(cookies_features[, -1]) # co-variables
+y <- cookies_features$fat # target variable
+```
+
+```{r, echo=FALSE}
+# glmnet package is required 
+# install.packages("glmnet")
+library(glmnet)
+```
+####Ridge regression
+
+We're going to do the ridge regression first, using a cross validation k-fold to choose the best value for $\lambda$.
+
+```{r}
+# Cross validation
+cv_ridge <- cv.glmnet(X, y, alpha=0)
+
+plot(cv_ridge)
+best_lambda <- cv_ridge$lambda.min # lambda that gives the lowest MSE
+print(paste("The best value for lambda is", best_lambda))
+```
+Now we have the best value for $\lambda$, we do another ridge regression with this parameter and there is its results : 
+
+```{r ,echo=FALSE}
+best_model_ridge <- glmnet(X, y, alpha=0, lambda = best_lambda)
+coef(best_model_ridge)
+```
+
+```{r}
+predictions <- predict(best_model_ridge, newx = X)
+
+# RMSE
+rmse <- sqrt(mean((predictions - y)^2)) 
+print(paste("RMSE ridge model :", rmse))
+
+# R^2
+r_squared <- 1 - sum((y - predictions)^2) / sum((y - mean(y))^2)
+print(paste("R^2 ridge model :", r_squared))
+
+```
+####Lasso regression
+
+```{r}
+cv_lasso <- cv.glmnet(X, y, alpha=1)
+
+plot(cv_lasso)
+best_lambda <- cv_lasso$lambda.min # \(\lambda\) qui donne le plus bas MSE
+print(paste("La meilleure valeur pour lambda est", best_lambda))
+```
+```{r}
+best_model_lasso <- glmnet(X, y, alpha=1, lambda = best_lambda)
+coef(best_model_lasso)
+```
+
+```{r}
+predictions <- predict(best_model_lasso, newx = X)
+
+# RMSE
+rmse <- sqrt(mean((predictions - y)^2)) 
+print(paste("RMSE lasso model :", rmse))
+
+# R^2
+r_squared <- 1 - sum((y - predictions)^2) / sum((y - mean(y))^2)
+print(paste("R^2 lasso model :", r_squared))
+
+```
+####No penalization
+
+```{r}
+model_linear <- lm(y ~ X)
+
+predictions_linear <- predict(model_linear, newdata = data.frame(X))
+
+# RMSE
+rmse_linear <- sqrt(mean((predictions_linear - y)^2)) 
+print(paste("RMSE linear model :", rmse_linear))
+
+# R^2
+r_squared_linear <- 1 - sum((y - predictions_linear)^2) / sum((y - mean(y))^2)
+print(paste("R^2 linear model :", r_squared_linear))
+```
