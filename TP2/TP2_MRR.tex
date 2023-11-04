@@ -1,0 +1,515 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={TP2 MRR},
+  pdfauthor={Noah KWA MOUTOME - Victor TAN},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{TP2 MRR}
+\author{Noah KWA MOUTOME - Victor TAN}
+\date{2023-10-31}
+
+\begin{document}
+\maketitle
+
+\section{IV. Cookies Study}\label{iv.-cookies-study}
+
+\subsubsection{Imports}\label{imports}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cookies\_data }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"cookies.csv"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{Features extraction}\label{features-extraction}
+
+For each line (meaning, for each cookie), we will use the different
+spectral values to compute: the mean, the standard deviation, the slope,
+the minimum and the maximum.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Computation (mean, standard deviation, minimum and maximum)}
+
+\NormalTok{cookies\_data}\SpecialCharTok{$}\NormalTok{mean }\OtherTok{\textless{}{-}} \FunctionTok{rowMeans}\NormalTok{(cookies\_data[, }\DecValTok{2}\SpecialCharTok{:}\DecValTok{701}\NormalTok{])}
+\NormalTok{cookies\_data}\SpecialCharTok{$}\NormalTok{stDev }\OtherTok{\textless{}{-}} \FunctionTok{apply}\NormalTok{(cookies\_data[, }\DecValTok{2}\SpecialCharTok{:}\DecValTok{701}\NormalTok{], }\DecValTok{1}\NormalTok{, sd)}
+\NormalTok{cookies\_data}\SpecialCharTok{$}\NormalTok{min }\OtherTok{\textless{}{-}} \FunctionTok{apply}\NormalTok{(cookies\_data[, }\DecValTok{2}\SpecialCharTok{:}\DecValTok{701}\NormalTok{], }\DecValTok{1}\NormalTok{, min)}
+\NormalTok{cookies\_data}\SpecialCharTok{$}\NormalTok{max }\OtherTok{\textless{}{-}} \FunctionTok{apply}\NormalTok{(cookies\_data[, }\DecValTok{2}\SpecialCharTok{:}\DecValTok{701}\NormalTok{], }\DecValTok{1}\NormalTok{, max)}
+
+
+\CommentTok{\# Computation (slope)}
+
+\CommentTok{\# Function: compute\_slope}
+\CommentTok{\# @param: spectrum\_values of a cookie (here, column 2 to 701)}
+\CommentTok{\# @return: slope of the spectrum curve for a cookie}
+\NormalTok{compute\_slope }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(spectrum\_values) \{}
+\NormalTok{  pos }\OtherTok{\textless{}{-}} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(spectrum\_values)}
+\NormalTok{  lm\_model }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(spectrum\_values }\SpecialCharTok{\textasciitilde{}}\NormalTok{ pos)}
+\NormalTok{  slope }\OtherTok{\textless{}{-}} \FunctionTok{coef}\NormalTok{(lm\_model)[}\DecValTok{2}\NormalTok{]}
+  \FunctionTok{return}\NormalTok{(slope)}
+\NormalTok{\}}
+
+\NormalTok{cookies\_data}\SpecialCharTok{$}\NormalTok{slope }\OtherTok{\textless{}{-}} \FunctionTok{apply}\NormalTok{(cookies\_data[, }\DecValTok{2}\SpecialCharTok{:}\DecValTok{701}\NormalTok{], }\DecValTok{1}\NormalTok{, compute\_slope) }
+
+
+\CommentTok{\# Display of the new columns}
+\FunctionTok{head}\NormalTok{(cookies\_data[,}\DecValTok{702}\SpecialCharTok{:}\DecValTok{706}\NormalTok{])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##        mean     stDev      min     max       slope
+## 1 0.9851499 0.4111868 0.259270 1.73946 0.001914311
+## 2 1.0355417 0.4123933 0.266864 1.66273 0.001898164
+## 3 1.0010620 0.4025158 0.251654 1.60960 0.001860203
+## 4 1.0280481 0.4040351 0.277777 1.63881 0.001861782
+## 5 1.0655011 0.4158252 0.288328 1.70320 0.001910926
+## 6 1.0840236 0.4262425 0.284625 1.74356 0.001967228
+\end{verbatim}
+
+\subsubsection{Regression model}\label{regression-model}
+
+Now, we have the different features of the spectra.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Only features and fat values are retrieved}
+
+\NormalTok{cookies\_features }\OtherTok{\textless{}{-}}\NormalTok{ cookies\_data[}\FunctionTok{c}\NormalTok{(}\StringTok{"fat"}\NormalTok{, }\StringTok{"mean"}\NormalTok{, }\StringTok{"stDev"}\NormalTok{, }\StringTok{"slope"}\NormalTok{, }\StringTok{"min"}\NormalTok{, }\StringTok{"max"}\NormalTok{)]}
+\FunctionTok{head}\NormalTok{(cookies\_features)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##     fat      mean     stDev       slope      min     max
+## 1 12.57 0.9851499 0.4111868 0.001914311 0.259270 1.73946
+## 2 15.13 1.0355417 0.4123933 0.001898164 0.266864 1.66273
+## 3 12.63 1.0010620 0.4025158 0.001860203 0.251654 1.60960
+## 4 13.85 1.0280481 0.4040351 0.001861782 0.277777 1.63881
+## 5 15.25 1.0655011 0.4158252 0.001910926 0.288328 1.70320
+## 6 13.66 1.0840236 0.4262425 0.001967228 0.284625 1.74356
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{X }\OtherTok{\textless{}{-}} \FunctionTok{as.matrix}\NormalTok{(cookies\_features[, }\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{]) }\CommentTok{\# co{-}variables}
+\NormalTok{y }\OtherTok{\textless{}{-}}\NormalTok{ cookies\_features}\SpecialCharTok{$}\NormalTok{fat }\CommentTok{\# target variable}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Loading required package: Matrix
+\end{verbatim}
+
+\begin{verbatim}
+## Loaded glmnet 4.1-8
+\end{verbatim}
+
+\paragraph{Ridge regression}\label{ridge-regression}
+
+We're going to do the ridge regression first, using a cross validation
+k-fold to choose the best value for \(\lambda\).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Cross validation}
+\NormalTok{lambdas\_log }\OtherTok{\textless{}{-}} \DecValTok{10}\SpecialCharTok{\^{}}\FunctionTok{seq}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{4}\NormalTok{, }\DecValTok{1}\NormalTok{, }\AttributeTok{length.out =} \DecValTok{100}\NormalTok{)}
+\NormalTok{cv\_ridge }\OtherTok{\textless{}{-}} \FunctionTok{cv.glmnet}\NormalTok{(X, y, }\AttributeTok{alpha=}\DecValTok{0}\NormalTok{, }\AttributeTok{lambda =}\NormalTok{ (lambdas\_log), }\AttributeTok{standardize =} \ConstantTok{TRUE}\NormalTok{)}
+
+\FunctionTok{plot}\NormalTok{(cv\_ridge)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{TP2_MRR_files/figure-latex/unnamed-chunk-5-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{best\_lambda }\OtherTok{\textless{}{-}}\NormalTok{ cv\_ridge}\SpecialCharTok{$}\NormalTok{lambda.min }\CommentTok{\# lambda that gives the lowest MSE}
+\FunctionTok{print}\NormalTok{(}\FunctionTok{paste}\NormalTok{(}\StringTok{"The best value for lambda is"}\NormalTok{, best\_lambda))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "The best value for lambda is 0.0849753435908644"
+\end{verbatim}
+
+Let's use AIC and BIC criteria to recheck this value.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# AIC and BIC}
+\NormalTok{n }\OtherTok{\textless{}{-}} \FunctionTok{nrow}\NormalTok{(X)}
+\NormalTok{p }\OtherTok{\textless{}{-}} \FunctionTok{ncol}\NormalTok{(X)}
+\NormalTok{aic }\OtherTok{\textless{}{-}}\NormalTok{ n }\SpecialCharTok{*} \FunctionTok{log}\NormalTok{(cv\_ridge}\SpecialCharTok{$}\NormalTok{cvm) }\SpecialCharTok{+} \DecValTok{2} \SpecialCharTok{*}\NormalTok{ p}
+\NormalTok{bic }\OtherTok{\textless{}{-}}\NormalTok{ n }\SpecialCharTok{*} \FunctionTok{log}\NormalTok{(cv\_ridge}\SpecialCharTok{$}\NormalTok{cvm) }\SpecialCharTok{+} \FunctionTok{log}\NormalTok{(n) }\SpecialCharTok{*}\NormalTok{ p}
+
+\FunctionTok{plot}\NormalTok{(}\FunctionTok{log}\NormalTok{(cv\_ridge}\SpecialCharTok{$}\NormalTok{lambda), aic, }\AttributeTok{col =} \StringTok{"red1"}\NormalTok{, }\AttributeTok{type =} \StringTok{"l"}\NormalTok{, }\AttributeTok{xlim =} \FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{8}\NormalTok{, }\SpecialCharTok{{-}}\DecValTok{2}\NormalTok{), }\AttributeTok{ylab =} \StringTok{"Information Criterion"}\NormalTok{)}
+\FunctionTok{lines}\NormalTok{(}\FunctionTok{log}\NormalTok{(cv\_ridge}\SpecialCharTok{$}\NormalTok{lambda), bic, }\AttributeTok{col =} \StringTok{"blue1"}\NormalTok{)}
+\FunctionTok{legend}\NormalTok{(}\StringTok{"bottomright"}\NormalTok{, }\AttributeTok{lwd =} \DecValTok{1}\NormalTok{, }\AttributeTok{col =} \FunctionTok{c}\NormalTok{(}\StringTok{"red1"}\NormalTok{, }\StringTok{"blue1"}\NormalTok{), }\AttributeTok{legend =} \FunctionTok{c}\NormalTok{(}\StringTok{"AIC"}\NormalTok{, }\StringTok{"BIC"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{TP2_MRR_files/figure-latex/unnamed-chunk-6-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{best\_lambda\_aic }\OtherTok{\textless{}{-}}\NormalTok{ cv\_ridge}\SpecialCharTok{$}\NormalTok{lambda[}\FunctionTok{which.min}\NormalTok{(aic)] }\CommentTok{\# lambda that gives the lowest AIC}
+\NormalTok{best\_lambda\_bic }\OtherTok{\textless{}{-}}\NormalTok{ cv\_ridge}\SpecialCharTok{$}\NormalTok{lambda[}\FunctionTok{which.min}\NormalTok{(bic)] }\CommentTok{\# lambda that gives the lowest BIC}
+\end{Highlighting}
+\end{Shaded}
+
+Now we can compare the different values for \(\lambda\) we found.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lambda\_values }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(best\_lambda, best\_lambda\_aic, best\_lambda\_bic)}
+\NormalTok{lambda\_values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.08497534 0.08497534 0.08497534
+\end{verbatim}
+
+There are the same. We can also plot the Regularization Path.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot}\NormalTok{(cv\_ridge}\SpecialCharTok{$}\NormalTok{glmnet.fit, }\AttributeTok{xvar =} \StringTok{"lambda"}\NormalTok{, }\AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{100}\NormalTok{, }\DecValTok{100}\NormalTok{))}
+\FunctionTok{abline}\NormalTok{(}\AttributeTok{h =} \DecValTok{0}\NormalTok{, }\AttributeTok{col =} \DecValTok{6}\NormalTok{, }\AttributeTok{lty =} \DecValTok{3}\NormalTok{)}
+\FunctionTok{abline}\NormalTok{(}\AttributeTok{v =} \FunctionTok{log}\NormalTok{(best\_lambda), }\AttributeTok{col =} \DecValTok{7}\NormalTok{, }\AttributeTok{lty =} \DecValTok{3}\NormalTok{)}
+\FunctionTok{legend}\NormalTok{(}\StringTok{"bottomleft"}\NormalTok{, }\AttributeTok{legend =} \FunctionTok{c}\NormalTok{(}\FunctionTok{colnames}\NormalTok{(X), }\StringTok{"Zero"}\NormalTok{, }\StringTok{"Best Lambda"}\NormalTok{), }\AttributeTok{col =} \DecValTok{1}\SpecialCharTok{:}\DecValTok{7}\NormalTok{, }\AttributeTok{lty =} \DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{TP2_MRR_files/figure-latex/unnamed-chunk-8-1.pdf}
+
+Now we have the best value for \(\lambda\), we do another ridge
+regression with this parameter and there is its results :
+
+\begin{verbatim}
+## 6 x 1 sparse Matrix of class "dgCMatrix"
+##                        s0
+## (Intercept)    -3.1654816
+## mean           12.9578127
+## stDev           5.0113441
+## slope       -1867.4364813
+## min            22.8909247
+## max            -0.6062851
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{predictions }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(best\_model\_ridge, }\AttributeTok{newx =}\NormalTok{ X)}
+
+\CommentTok{\# RMSE}
+\NormalTok{rmse }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((predictions }\SpecialCharTok{{-}}\NormalTok{ y)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)) }
+\FunctionTok{print}\NormalTok{(}\FunctionTok{paste}\NormalTok{(}\StringTok{"RMSE ridge model :"}\NormalTok{, rmse))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "RMSE ridge model : 0.817291530510177"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# R\^{}2}
+\NormalTok{r\_squared }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{{-}} \FunctionTok{sum}\NormalTok{((y }\SpecialCharTok{{-}}\NormalTok{ predictions)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{) }\SpecialCharTok{/} \FunctionTok{sum}\NormalTok{((y }\SpecialCharTok{{-}} \FunctionTok{mean}\NormalTok{(y))}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+\FunctionTok{print}\NormalTok{(}\FunctionTok{paste}\NormalTok{(}\StringTok{"R\^{}2 ridge model :"}\NormalTok{, r\_squared))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "R^2 ridge model : 0.620807369110863"
+\end{verbatim}
+
+\subparagraph{Conclusion of Ridge
+regression}\label{conclusion-of-ridge-regression}
+
+We can see that the coefficient of the slope is very important in
+absolute value relatively to the others. It means that the slope is a
+very important feature to predict the fat value of a cookie. Futhermore,
+the coefficient of the mean, the standard deviation and the minimum are
+not null but negligible compared to the slope. It means that these
+features are not very important to predict the fat value of a cookie,
+but are more important than the max.
+
+\paragraph{Lasso regression}\label{lasso-regression}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cv\_lasso }\OtherTok{\textless{}{-}} \FunctionTok{cv.glmnet}\NormalTok{(X, y, }\AttributeTok{alpha=}\DecValTok{1}\NormalTok{, }\AttributeTok{lambda =}\NormalTok{ (lambdas\_log), }\AttributeTok{standardize =} \ConstantTok{TRUE}\NormalTok{)}
+
+\FunctionTok{plot}\NormalTok{(cv\_lasso)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{TP2_MRR_files/figure-latex/unnamed-chunk-11-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{best\_lambda\_lasso }\OtherTok{\textless{}{-}}\NormalTok{ cv\_lasso}\SpecialCharTok{$}\NormalTok{lambda.min }\CommentTok{\# lambda that gives the lowest MSE}
+\FunctionTok{print}\NormalTok{(}\FunctionTok{paste}\NormalTok{(}\StringTok{"The best value for lambda is"}\NormalTok{, best\_lambda\_lasso))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "The best value for lambda is 0.0210490414451202"
+\end{verbatim}
+
+Let's use AIC and BIC criteria to recheck this value.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# AIC and BIC}
+\NormalTok{n }\OtherTok{\textless{}{-}} \FunctionTok{nrow}\NormalTok{(X)}
+\NormalTok{p }\OtherTok{\textless{}{-}} \FunctionTok{ncol}\NormalTok{(X)}
+\NormalTok{lasso\_aic }\OtherTok{\textless{}{-}}\NormalTok{ n }\SpecialCharTok{*} \FunctionTok{log}\NormalTok{(cv\_lasso}\SpecialCharTok{$}\NormalTok{cvm) }\SpecialCharTok{+} \DecValTok{2} \SpecialCharTok{*}\NormalTok{ p}
+\NormalTok{lasso\_bic }\OtherTok{\textless{}{-}}\NormalTok{ n }\SpecialCharTok{*} \FunctionTok{log}\NormalTok{(cv\_lasso}\SpecialCharTok{$}\NormalTok{cvm) }\SpecialCharTok{+} \FunctionTok{log}\NormalTok{(n) }\SpecialCharTok{*}\NormalTok{ p}
+
+\FunctionTok{plot}\NormalTok{(}\FunctionTok{log}\NormalTok{(cv\_lasso}\SpecialCharTok{$}\NormalTok{lambda), lasso\_aic, }\AttributeTok{col =} \StringTok{"red1"}\NormalTok{, }\AttributeTok{type =} \StringTok{"l"}\NormalTok{, }\AttributeTok{xlim =} \FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{8}\NormalTok{, }\SpecialCharTok{{-}}\DecValTok{2}\NormalTok{), }\AttributeTok{ylab =} \StringTok{"Information Criterion"}\NormalTok{)}
+\FunctionTok{lines}\NormalTok{(}\FunctionTok{log}\NormalTok{(cv\_lasso}\SpecialCharTok{$}\NormalTok{lambda), lasso\_bic, }\AttributeTok{col =} \StringTok{"blue1"}\NormalTok{)}
+\FunctionTok{legend}\NormalTok{(}\StringTok{"bottomright"}\NormalTok{, }\AttributeTok{lwd =} \DecValTok{1}\NormalTok{, }\AttributeTok{col =} \FunctionTok{c}\NormalTok{(}\StringTok{"red1"}\NormalTok{, }\StringTok{"blue1"}\NormalTok{), }\AttributeTok{legend =} \FunctionTok{c}\NormalTok{(}\StringTok{"AIC"}\NormalTok{, }\StringTok{"BIC"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{TP2_MRR_files/figure-latex/unnamed-chunk-12-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{best\_lambda\_lasso\_aic }\OtherTok{\textless{}{-}}\NormalTok{ cv\_lasso}\SpecialCharTok{$}\NormalTok{lambda[}\FunctionTok{which.min}\NormalTok{(lasso\_aic)] }\CommentTok{\# lambda that gives the lowest AIC}
+\NormalTok{best\_lambda\_lasso\_bic }\OtherTok{\textless{}{-}}\NormalTok{ cv\_lasso}\SpecialCharTok{$}\NormalTok{lambda[}\FunctionTok{which.min}\NormalTok{(lasso\_bic)] }\CommentTok{\# lambda that gives the lowest BIC}
+\end{Highlighting}
+\end{Shaded}
+
+Now we can compare the different values for \(\lambda\) we found.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{lambda\_lasso\_values }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(best\_lambda\_lasso, best\_lambda\_lasso\_aic, best\_lambda\_lasso\_bic)}
+\NormalTok{lambda\_lasso\_values}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.02104904 0.02104904 0.02104904
+\end{verbatim}
+
+There are the same. We can also plot the Regularization Path.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot}\NormalTok{(cv\_lasso}\SpecialCharTok{$}\NormalTok{glmnet.fit, }\AttributeTok{xvar =} \StringTok{"lambda"}\NormalTok{, }\AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{100}\NormalTok{, }\DecValTok{100}\NormalTok{))}
+\FunctionTok{abline}\NormalTok{(}\AttributeTok{h =} \DecValTok{0}\NormalTok{, }\AttributeTok{col =} \DecValTok{6}\NormalTok{, }\AttributeTok{lty =} \DecValTok{3}\NormalTok{)}
+\FunctionTok{abline}\NormalTok{(}\AttributeTok{v =} \FunctionTok{log}\NormalTok{(best\_lambda\_lasso), }\AttributeTok{col =} \DecValTok{7}\NormalTok{, }\AttributeTok{lty =} \DecValTok{3}\NormalTok{)}
+\FunctionTok{legend}\NormalTok{(}\StringTok{"bottomleft"}\NormalTok{, }\AttributeTok{legend =} \FunctionTok{c}\NormalTok{(}\FunctionTok{colnames}\NormalTok{(X), }\StringTok{"Zero"}\NormalTok{, }\StringTok{"Best Lambda"}\NormalTok{), }\AttributeTok{col =} \DecValTok{1}\SpecialCharTok{:}\DecValTok{7}\NormalTok{, }\AttributeTok{lty =} \DecValTok{1}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{TP2_MRR_files/figure-latex/unnamed-chunk-14-1.pdf}
+
+Now we have the best value for \(\lambda\), we do another lasso
+regression with this parameter and there is its results :
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{best\_model\_lasso }\OtherTok{\textless{}{-}} \FunctionTok{glmnet}\NormalTok{(X, y, }\AttributeTok{alpha=}\DecValTok{1}\NormalTok{, }\AttributeTok{lambda =}\NormalTok{ best\_lambda\_lasso)}
+\FunctionTok{coef}\NormalTok{(best\_model\_lasso)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 6 x 1 sparse Matrix of class "dgCMatrix"
+##                       s0
+## (Intercept)    -2.368633
+## mean           22.111007
+## stDev           .       
+## slope       -3432.049757
+## min             .       
+## max             .
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{predictions }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(best\_model\_lasso, }\AttributeTok{newx =}\NormalTok{ X)}
+
+\CommentTok{\# RMSE}
+\NormalTok{rmse }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((predictions }\SpecialCharTok{{-}}\NormalTok{ y)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)) }
+\FunctionTok{print}\NormalTok{(}\FunctionTok{paste}\NormalTok{(}\StringTok{"RMSE lasso model :"}\NormalTok{, rmse))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "RMSE lasso model : 0.800149481274398"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# R\^{}2}
+\NormalTok{r\_squared }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{{-}} \FunctionTok{sum}\NormalTok{((y }\SpecialCharTok{{-}}\NormalTok{ predictions)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{) }\SpecialCharTok{/} \FunctionTok{sum}\NormalTok{((y }\SpecialCharTok{{-}} \FunctionTok{mean}\NormalTok{(y))}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+\FunctionTok{print}\NormalTok{(}\FunctionTok{paste}\NormalTok{(}\StringTok{"R\^{}2 lasso model :"}\NormalTok{, r\_squared))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "R^2 lasso model : 0.636547091965701"
+\end{verbatim}
+
+\paragraph{Conclusion of Lasso
+regression}\label{conclusion-of-lasso-regression}
+
+We can see that the coefficient of the slope is also very important in
+absolute value relatively to the others. It means that the slope is a
+very important feature to predict the fat value of a cookie. In this
+case, we can also see that the mean is not null wheras all the others
+are. It means that the mean could be a feature to predict the fat value
+of a cookie relatively to the others, but is less important than the
+slope.
+
+\subsubsection{No penalization}\label{no-penalization}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model\_linear }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(y }\SpecialCharTok{\textasciitilde{}}\NormalTok{ X)}
+
+\NormalTok{predictions\_linear }\OtherTok{\textless{}{-}} \FunctionTok{predict}\NormalTok{(model\_linear, }\AttributeTok{newdata =} \FunctionTok{data.frame}\NormalTok{(X))}
+
+\CommentTok{\# RMSE}
+\NormalTok{rmse\_linear }\OtherTok{\textless{}{-}} \FunctionTok{sqrt}\NormalTok{(}\FunctionTok{mean}\NormalTok{((predictions\_linear }\SpecialCharTok{{-}}\NormalTok{ y)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)) }
+\FunctionTok{print}\NormalTok{(}\FunctionTok{paste}\NormalTok{(}\StringTok{"RMSE linear model :"}\NormalTok{, rmse\_linear))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "RMSE linear model : 0.706440945059218"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# R\^{}2}
+\NormalTok{r\_squared\_linear }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{{-}} \FunctionTok{sum}\NormalTok{((y }\SpecialCharTok{{-}}\NormalTok{ predictions\_linear)}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{) }\SpecialCharTok{/} \FunctionTok{sum}\NormalTok{((y }\SpecialCharTok{{-}} \FunctionTok{mean}\NormalTok{(y))}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}
+\FunctionTok{print}\NormalTok{(}\FunctionTok{paste}\NormalTok{(}\StringTok{"R\^{}2 linear model :"}\NormalTok{, r\_squared\_linear))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] "R^2 linear model : 0.716692796197639"
+\end{verbatim}
+
+\subsubsection{Conclusion}\label{conclusion}
+
+We can see that for both Lasso and Ridge regressions, the RMSE is higher
+and the R\^{}2 is lower than those of the linear model. It means that
+the linear model is better than the Lasso and Ridge models to predict
+the fat value of a cookie in our study. There could be several reasons
+for that. First, the number of features is not very high, so the
+penalization is not very useful and we actually lost to much
+information. Secondly, the model was not overfitting. Still, the values
+of the RMSE and R\^{}2 are very close, so the difference is not very
+important, and those penalization show us that the slope and mean are
+indead the most important features to predict the fat value of a cookie.
+
+\end{document}

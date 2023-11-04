@@ -2,21 +2,22 @@
 title: "TP2 MRR"
 author: "Noah KWA MOUTOME - Victor TAN"
 date: "2023-10-31"
-output: pdf_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls()); graphics.off()
 ```
 
 # IV. Cookies Study
 
-### Imports
+## Imports
 ```{r}
 cookies_data <- read.csv("cookies.csv")
 ```
 
-### Features extraction
+## Features extraction
 
 For each line (meaning, for each cookie), we will use the different spectral values to compute: the mean, the standard deviation, the slope, the minimum and the maximum. 
 
@@ -48,7 +49,9 @@ cookies_data$slope <- apply(cookies_data[, 2:701], 1, compute_slope)
 head(cookies_data[,702:706])
 ```
 
-### Regression model
+---
+
+## Regression model
 
 Now, we have the different features of the spectra. 
 
@@ -69,7 +72,7 @@ library(glmnet)
 library(MASS)
 ```
 
-#### Ridge regression
+### Ridge regression
 
 We're going to do the ridge regression first, using a cross validation k-fold to choose the best value for $\lambda$.
 
@@ -116,6 +119,8 @@ abline(v = log(best_lambda), col = 7, lty = 3)
 legend("bottomleft", legend = c(colnames(X), "Zero", "Best Lambda"), col = 1:7, lty = 1)
 ```
 
+---
+
 Now we have the best value for $\lambda$, we do another ridge regression with this parameter and there is its results : 
 
 ```{r ,echo=FALSE}
@@ -136,13 +141,16 @@ print(paste("R^2 ridge model :", r_squared))
 
 ```
 
-##### Conclusion of Ridge regression
+---
+
+#### Conclusion of Ridge regression
 
 We can see that the coefficient of the slope is very important in absolute value relatively to the others. It means that the slope is a very important feature to predict the fat value of a cookie.
 Futhermore, the coefficient of the mean, the standard deviation and the minimum are not null but negligible compared to the slope. It means that these features are not very important to predict the fat value of a cookie, but are more important than the max.
 
+---
 
-#### Lasso regression
+### Lasso regression
 
 ```{r}
 cv_lasso <- cv.glmnet(X, y, alpha=1, lambda = (lambdas_log), standardize = TRUE)
@@ -185,6 +193,7 @@ abline(v = log(best_lambda_lasso), col = 7, lty = 3)
 legend("bottomleft", legend = c(colnames(X), "Zero", "Best Lambda"), col = 1:7, lty = 1)
 ```
 
+---
 
 Now we have the best value for $\lambda$, we do another lasso regression with this parameter and there is its results : 
 
@@ -206,12 +215,16 @@ print(paste("R^2 lasso model :", r_squared))
 
 ```
 
-#### Conclusion of Lasso regression
+---
+
+### Conclusion of Lasso regression
 
 We can see that the coefficient of the slope is also very important in absolute value relatively to the others. It means that the slope is a very important feature to predict the fat value of a cookie.
 In this case, we can also see that the mean is not null wheras all the others are. It means that the mean could be a feature to predict the fat value of a cookie relatively to the others, but is less important than the slope.
 
-### No penalization
+---
+
+## No penalization
 
 ```{r}
 model_linear <- lm(y ~ X)
@@ -227,10 +240,12 @@ r_squared_linear <- 1 - sum((y - predictions_linear)^2) / sum((y - mean(y))^2)
 print(paste("R^2 linear model :", r_squared_linear))
 ```
 
-### Conclusion
+---
+
+## Conclusion
 
 We can see that for both Lasso and Ridge regressions, the RMSE is higher and the R^2 is lower than those of the linear model. 
 It means that the linear model is better than the Lasso and Ridge models to predict the fat value of a cookie in our study.
 There could be several reasons for that. First, the number of features is not very high, so the penalization is not very useful and we actually lost to much information. 
 Secondly, the model was not overfitting.
-Still, the values of the RMSE and R^2 are very close, so the difference is not very important, and those penalization show us that the slope and mean are indead the most important features to predict the fat value of a cookie. 
+Still, the values of the RMSE and R^2 are very close, so the difference is not very important, and those penalizations show us that the slope and mean are indead the most important features to predict the fat value of a cookie. 
