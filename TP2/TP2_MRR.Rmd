@@ -9,7 +9,7 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#IV. Cookies Study
+# IV. Cookies Study
 
 ### Imports
 ```{r}
@@ -66,19 +66,60 @@ y <- cookies_features$fat # target variable
 # glmnet package is required 
 # install.packages("glmnet")
 library(glmnet)
+library(MASS)
 ```
-####Ridge regression
+
+#### Ridge regression
 
 We're going to do the ridge regression first, using a cross validation k-fold to choose the best value for $\lambda$.
 
 ```{r}
 # Cross validation
-cv_ridge <- cv.glmnet(X, y, alpha=0)
+lambdas_log <- 10^seq(-4, 1, length.out = 100)
+cv_ridge <- cv.glmnet(X, y, alpha=0, lambda = (lambdas_log), standardize = TRUE)
 
 plot(cv_ridge)
 best_lambda <- cv_ridge$lambda.min # lambda that gives the lowest MSE
 print(paste("The best value for lambda is", best_lambda))
 ```
+
+Let's use AIC and BIC criteria to recheck this value.
+
+```{r}
+# AIC and BIC
+n <- nrow(X)
+p <- ncol(X)
+aic <- n * log(cv_ridge$cvm) + 2 * p
+bic <- n * log(cv_ridge$cvm) + log(n) * p
+
+plot(log(cv_ridge$lambda), aic, col = "red1", type = "l", xlim = c(-8, -2), ylab = "Information Criterion")
+lines(log(cv_ridge$lambda), bic, col = "blue1")
+legend("bottomright", lwd = 1, col = c("red1", "blue1"), legend = c("AIC", "BIC"))
+
+best_lambda_aic <- cv_ridge$lambda[which.min(aic)] # lambda that gives the lowest AIC
+best_lambda_bic <- cv_ridge$lambda[which.min(bic)] # lambda that gives the lowest BIC
+```
+
+Now we can compare the different values for $\lambda$ we found.
+
+```{r}
+lambda_values <- c(best_lambda, best_lambda_aic, best_lambda_bic)
+lambda_values
+```
+
+There are the same. We can also plot the Regularization Path using lm.ridge.
+
+```{r}
+# lm.ridge
+lambdas_seq <- seq(0, 0.1, 0.001)
+lm_ridge <- lm.ridge(fat ~ ., data= cookies_features, lambda = lambdas_seq)
+plot(lm_ridge)
+abline(h = 0, col = 7, lty = 3)
+abline(v = best_lambda, col = 8, lty = 3)
+legend("topright", legend = c(colnames(cookies_features), "Zero", "Best Lambda"), col = 1:8, lty = 1)
+best_lambda_2 <- lm_ridge$lambda[which.min(lm_ridge$GCV)] # lambda that gives the lowest GCV
+```
+
 Now we have the best value for $\lambda$, we do another ridge regression with this parameter and there is its results : 
 
 ```{r ,echo=FALSE}
@@ -98,17 +139,53 @@ r_squared <- 1 - sum((y - predictions)^2) / sum((y - mean(y))^2)
 print(paste("R^2 ridge model :", r_squared))
 
 ```
-####Lasso regression
+
+##### Conclusion of Ridge regression
+
+We can see that the coefficient of the slope is very important in absolute value relatively to the others. It means that the slope is a very important feature to predict the fat value of a cookie.
+
+#### Lasso regression
 
 ```{r}
-cv_lasso <- cv.glmnet(X, y, alpha=1)
+cv_lasso <- cv.glmnet(X, y, alpha=1, lambda = (lambdas_log), standardize = TRUE)
 
 plot(cv_lasso)
-best_lambda <- cv_lasso$lambda.min # \(\lambda\) qui donne le plus bas MSE
-print(paste("La meilleure valeur pour lambda est", best_lambda))
+best_lambda_lasso <- cv_lasso$lambda.min # lambda that gives the lowest MSE
+print(paste("The best value for lambda is", best_lambda_lasso))
 ```
+
+Let's use AIC and BIC criteria to recheck this value.
+
 ```{r}
-best_model_lasso <- glmnet(X, y, alpha=1, lambda = best_lambda)
+# AIC and BIC
+n <- nrow(X)
+p <- ncol(X)
+lasso_aic <- n * log(cv_lasso$cvm) + 2 * p
+lasso_bic <- n * log(cv_lasso$cvm) + log(n) * p
+
+plot(log(cv_lasso$lambda), lasso_aic, col = "red1", type = "l", xlim = c(-8, -2), ylab = "Information Criterion")
+lines(log(cv_lasso$lambda), lasso_bic, col = "blue1")
+legend("bottomright", lwd = 1, col = c("red1", "blue1"), legend = c("AIC", "BIC"))
+
+best_lambda_lasso_aic <- cv_lasso$lambda[which.min(lasso_aic)] # lambda that gives the lowest AIC
+best_lambda_lasso_bic <- cv_lasso$lambda[which.min(lasso_bic)] # lambda that gives the lowest BIC
+```
+
+Now we can compare the different values for $\lambda$ we found.
+
+```{r}
+lambda_lasso_values <- c(best_lambda_lasso, best_lambda_lasso_aic, best_lambda_lasso_bic)
+lambda_lasso_values
+```
+
+There are the same. We can also plot the Regularization Path using lm.ridge.
+
+
+
+
+
+```{r}
+best_model_lasso <- glmnet(X, y, alpha=1, lambda = best_lambda_lasso)
 coef(best_model_lasso)
 ```
 
