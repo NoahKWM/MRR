@@ -110,7 +110,10 @@ lambda_values
 There are the same. We can also plot the Regularization Path.
 
 ```{r}
-plot(cv_ridge$glmnet.fit, xvar = "lambda", label = TRUE, ylim = c(-30, 0.5))
+plot(cv_ridge$glmnet.fit, xvar = "lambda", ylim = c(-100, 100))
+abline(h = 0, col = 6, lty = 3)
+abline(v = log(best_lambda), col = 7, lty = 3)
+legend("bottomleft", legend = c(colnames(X), "Zero", "Best Lambda"), col = 1:7, lty = 1)
 ```
 
 Now we have the best value for $\lambda$, we do another ridge regression with this parameter and there is its results : 
@@ -136,6 +139,8 @@ print(paste("R^2 ridge model :", r_squared))
 ##### Conclusion of Ridge regression
 
 We can see that the coefficient of the slope is very important in absolute value relatively to the others. It means that the slope is a very important feature to predict the fat value of a cookie.
+Futhermore, the coefficient of the mean, the standard deviation and the minimum are not null but negligible compared to the slope. It means that these features are not very important to predict the fat value of a cookie, but are more important than the max.
+
 
 #### Lasso regression
 
@@ -171,11 +176,17 @@ lambda_lasso_values <- c(best_lambda_lasso, best_lambda_lasso_aic, best_lambda_l
 lambda_lasso_values
 ```
 
-There are the same. We can also plot the Regularization Path using lm.ridge.
+There are the same. We can also plot the Regularization Path.
+
+```{r}
+plot(cv_lasso$glmnet.fit, xvar = "lambda", ylim = c(-100, 100))
+abline(h = 0, col = 6, lty = 3)
+abline(v = log(best_lambda_lasso), col = 7, lty = 3)
+legend("bottomleft", legend = c(colnames(X), "Zero", "Best Lambda"), col = 1:7, lty = 1)
+```
 
 
-
-
+Now we have the best value for $\lambda$, we do another lasso regression with this parameter and there is its results : 
 
 ```{r}
 best_model_lasso <- glmnet(X, y, alpha=1, lambda = best_lambda_lasso)
@@ -194,7 +205,13 @@ r_squared <- 1 - sum((y - predictions)^2) / sum((y - mean(y))^2)
 print(paste("R^2 lasso model :", r_squared))
 
 ```
-####No penalization
+
+#### Conclusion of Lasso regression
+
+We can see that the coefficient of the slope is also very important in absolute value relatively to the others. It means that the slope is a very important feature to predict the fat value of a cookie.
+In this case, we can also see that the mean is not null wheras all the others are. It means that the mean could be a feature to predict the fat value of a cookie relatively to the others, but is less important than the slope.
+
+### No penalization
 
 ```{r}
 model_linear <- lm(y ~ X)
@@ -209,3 +226,11 @@ print(paste("RMSE linear model :", rmse_linear))
 r_squared_linear <- 1 - sum((y - predictions_linear)^2) / sum((y - mean(y))^2)
 print(paste("R^2 linear model :", r_squared_linear))
 ```
+
+### Conclusion
+
+We can see that for both Lasso and Ridge regressions, the RMSE is higher and the R^2 is lower than those of the linear model. 
+It means that the linear model is better than the Lasso and Ridge models to predict the fat value of a cookie in our study.
+There could be several reasons for that. First, the number of features is not very high, so the penalization is not very useful and we actually lost to much information. 
+Secondly, the model was not overfitting.
+Still, the values of the RMSE and R^2 are very close, so the difference is not very important, and those penalization show us that the slope and mean are indead the most important features to predict the fat value of a cookie. 
