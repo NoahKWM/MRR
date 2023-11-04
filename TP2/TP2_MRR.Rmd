@@ -107,17 +107,10 @@ lambda_values <- c(best_lambda, best_lambda_aic, best_lambda_bic)
 lambda_values
 ```
 
-There are the same. We can also plot the Regularization Path using lm.ridge.
+There are the same. We can also plot the Regularization Path.
 
 ```{r}
-# lm.ridge
-lambdas_seq <- seq(0, 0.1, 0.001)
-lm_ridge <- lm.ridge(fat ~ ., data= cookies_features, lambda = lambdas_seq)
-plot(lm_ridge)
-abline(h = 0, col = 7, lty = 3)
-abline(v = best_lambda, col = 8, lty = 3)
-legend("topright", legend = c(colnames(cookies_features), "Zero", "Best Lambda"), col = 1:8, lty = 1)
-best_lambda_2 <- lm_ridge$lambda[which.min(lm_ridge$GCV)] # lambda that gives the lowest GCV
+plot(cv_ridge$glmnet.fit, xvar = "lambda", label = TRUE, ylim = c(-30, 0.5))
 ```
 
 Now we have the best value for $\lambda$, we do another ridge regression with this parameter and there is its results : 
