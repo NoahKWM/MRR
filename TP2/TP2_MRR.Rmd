@@ -2,7 +2,7 @@
 title: "TP2 MRR"
 author: "Noah KWA MOUTOME - Victor TAN"
 date: "2023-10-31"
-output: html_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -11,6 +11,11 @@ rm(list=ls()); graphics.off()
 ```
 
 # IV. Cookies Study
+
+First, let's go back to our previous results: We saw that with linear regression without penalty, only 2 explanatory variables were significant.
+We can deduce that we can also use a Lasso regression to select the most important features to predict the fat value of a cookie.
+Futhermore, we can use a Ridge regression to see if the model is overfitting or not.
+
 
 ## Imports
 ```{r}
@@ -145,7 +150,7 @@ print(paste("R^2 ridge model :", r_squared))
 
 #### Conclusion of Ridge regression
 
-We can see that the coefficient of the slope is very important in absolute value relatively to the others. It means that the slope is a very important feature to predict the fat value of a cookie.
+We can see that the coefficient of the slope is very important in absolute value relatively to the others (variables are scaled). It means that the slope is a very important feature to predict the fat value of a cookie.
 Futhermore, the coefficient of the mean, the standard deviation and the minimum are not null but negligible compared to the slope. It means that these features are not very important to predict the fat value of a cookie, but are more important than the max.
 
 ---
@@ -219,7 +224,7 @@ print(paste("R^2 lasso model :", r_squared))
 
 ### Conclusion of Lasso regression
 
-We can see that the coefficient of the slope is also very important in absolute value relatively to the others. It means that the slope is a very important feature to predict the fat value of a cookie.
+We can see that the coefficient of the slope is also very important in absolute value relatively to the others (variables are scaled). It means that the slope is a very important feature to predict the fat value of a cookie.
 In this case, we can also see that the mean is not null wheras all the others are. It means that the mean could be a feature to predict the fat value of a cookie relatively to the others, but is less important than the slope.
 
 ---

@@ -115,7 +115,14 @@
 
 \section{IV. Cookies Study}\label{iv.-cookies-study}
 
-\subsubsection{Imports}\label{imports}
+First, let's go back to our previous results: We saw that with linear
+regression without penalty, only 2 explanatory variables were
+significant. We can deduce that we can also use a Lasso regression to
+select the most important features to predict the fat value of a cookie.
+Futhermore, we can use a Ridge regression to see if the model is
+overfitting or not.
+
+\subsection{Imports}\label{imports}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -123,7 +130,7 @@
 \end{Highlighting}
 \end{Shaded}
 
-\subsubsection{Features extraction}\label{features-extraction}
+\subsection{Features extraction}\label{features-extraction}
 
 For each line (meaning, for each cookie), we will use the different
 spectral values to compute: the mean, the standard deviation, the slope,
@@ -169,7 +176,9 @@ the minimum and the maximum.
 ## 6 1.0840236 0.4262425 0.284625 1.74356 0.001967228
 \end{verbatim}
 
-\subsubsection{Regression model}\label{regression-model}
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Regression model}\label{regression-model}
 
 Now, we have the different features of the spectra.
 
@@ -207,7 +216,7 @@ Now, we have the different features of the spectra.
 ## Loaded glmnet 4.1-8
 \end{verbatim}
 
-\paragraph{Ridge regression}\label{ridge-regression}
+\subsubsection{Ridge regression}\label{ridge-regression}
 
 We're going to do the ridge regression first, using a cross validation
 k-fold to choose the best value for \(\lambda\).
@@ -232,7 +241,7 @@ k-fold to choose the best value for \(\lambda\).
 \end{Shaded}
 
 \begin{verbatim}
-## [1] "The best value for lambda is 0.0849753435908644"
+## [1] "The best value for lambda is 0.00367837977182863"
 \end{verbatim}
 
 Let's use AIC and BIC criteria to recheck this value.
@@ -270,7 +279,7 @@ Now we can compare the different values for \(\lambda\) we found.
 \end{Shaded}
 
 \begin{verbatim}
-## [1] 0.08497534 0.08497534 0.08497534
+## [1] 0.00367838 0.00367838 0.00367838
 \end{verbatim}
 
 There are the same. We can also plot the Regularization Path.
@@ -286,18 +295,20 @@ There are the same. We can also plot the Regularization Path.
 
 \includegraphics{TP2_MRR_files/figure-latex/unnamed-chunk-8-1.pdf}
 
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
 Now we have the best value for \(\lambda\), we do another ridge
 regression with this parameter and there is its results :
 
 \begin{verbatim}
 ## 6 x 1 sparse Matrix of class "dgCMatrix"
 ##                        s0
-## (Intercept)    -3.1654816
-## mean           12.9578127
-## stDev           5.0113441
-## slope       -1867.4364813
-## min            22.8909247
-## max            -0.6062851
+## (Intercept) -5.255615e-01
+## mean         2.402408e+01
+## stDev        7.325394e+01
+## slope       -2.116862e+04
+## min         -6.558606e+00
+## max          9.705276e-01
 \end{verbatim}
 
 \begin{Shaded}
@@ -311,7 +322,7 @@ regression with this parameter and there is its results :
 \end{Shaded}
 
 \begin{verbatim}
-## [1] "RMSE ridge model : 0.817291530510177"
+## [1] "RMSE ridge model : 0.75569802808987"
 \end{verbatim}
 
 \begin{Shaded}
@@ -323,21 +334,25 @@ regression with this parameter and there is its results :
 \end{Shaded}
 
 \begin{verbatim}
-## [1] "R^2 ridge model : 0.620807369110863"
+## [1] "R^2 ridge model : 0.675807868413113"
 \end{verbatim}
 
-\subparagraph{Conclusion of Ridge
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\paragraph{Conclusion of Ridge
 regression}\label{conclusion-of-ridge-regression}
 
 We can see that the coefficient of the slope is very important in
-absolute value relatively to the others. It means that the slope is a
-very important feature to predict the fat value of a cookie. Futhermore,
-the coefficient of the mean, the standard deviation and the minimum are
-not null but negligible compared to the slope. It means that these
-features are not very important to predict the fat value of a cookie,
-but are more important than the max.
+absolute value relatively to the others (variables are scaled). It means
+that the slope is a very important feature to predict the fat value of a
+cookie. Futhermore, the coefficient of the mean, the standard deviation
+and the minimum are not null but negligible compared to the slope. It
+means that these features are not very important to predict the fat
+value of a cookie, but are more important than the max.
 
-\paragraph{Lasso regression}\label{lasso-regression}
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{Lasso regression}\label{lasso-regression}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -357,7 +372,7 @@ but are more important than the max.
 \end{Shaded}
 
 \begin{verbatim}
-## [1] "The best value for lambda is 0.0210490414451202"
+## [1] "The best value for lambda is 0.00464158883361278"
 \end{verbatim}
 
 Let's use AIC and BIC criteria to recheck this value.
@@ -395,7 +410,7 @@ Now we can compare the different values for \(\lambda\) we found.
 \end{Shaded}
 
 \begin{verbatim}
-## [1] 0.02104904 0.02104904 0.02104904
+## [1] 0.004641589 0.004641589 0.004641589
 \end{verbatim}
 
 There are the same. We can also plot the Regularization Path.
@@ -411,6 +426,8 @@ There are the same. We can also plot the Regularization Path.
 
 \includegraphics{TP2_MRR_files/figure-latex/unnamed-chunk-14-1.pdf}
 
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
 Now we have the best value for \(\lambda\), we do another lasso
 regression with this parameter and there is its results :
 
@@ -423,13 +440,13 @@ regression with this parameter and there is its results :
 
 \begin{verbatim}
 ## 6 x 1 sparse Matrix of class "dgCMatrix"
-##                       s0
-## (Intercept)    -2.368633
-## mean           22.111007
-## stDev           .       
-## slope       -3432.049757
-## min             .       
-## max             .
+##                        s0
+## (Intercept) -1.091552e+00
+## mean         1.908124e+01
+## stDev        1.350834e+02
+## slope       -3.161498e+04
+## min         -1.132358e-01
+## max          .
 \end{verbatim}
 
 \begin{Shaded}
@@ -443,7 +460,7 @@ regression with this parameter and there is its results :
 \end{Shaded}
 
 \begin{verbatim}
-## [1] "RMSE lasso model : 0.800149481274398"
+## [1] "RMSE lasso model : 0.73647299949142"
 \end{verbatim}
 
 \begin{Shaded}
@@ -455,21 +472,25 @@ regression with this parameter and there is its results :
 \end{Shaded}
 
 \begin{verbatim}
-## [1] "R^2 lasso model : 0.636547091965701"
+## [1] "R^2 lasso model : 0.692093008165872"
 \end{verbatim}
 
-\paragraph{Conclusion of Lasso
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsubsection{Conclusion of Lasso
 regression}\label{conclusion-of-lasso-regression}
 
 We can see that the coefficient of the slope is also very important in
-absolute value relatively to the others. It means that the slope is a
-very important feature to predict the fat value of a cookie. In this
-case, we can also see that the mean is not null wheras all the others
-are. It means that the mean could be a feature to predict the fat value
-of a cookie relatively to the others, but is less important than the
-slope.
+absolute value relatively to the others (variables are scaled). It means
+that the slope is a very important feature to predict the fat value of a
+cookie. In this case, we can also see that the mean is not null wheras
+all the others are. It means that the mean could be a feature to predict
+the fat value of a cookie relatively to the others, but is less
+important than the slope.
 
-\subsubsection{No penalization}\label{no-penalization}
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{No penalization}\label{no-penalization}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -499,7 +520,9 @@ slope.
 ## [1] "R^2 linear model : 0.716692796197639"
 \end{verbatim}
 
-\subsubsection{Conclusion}\label{conclusion}
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Conclusion}\label{conclusion}
 
 We can see that for both Lasso and Ridge regressions, the RMSE is higher
 and the R\^{}2 is lower than those of the linear model. It means that
@@ -509,7 +532,7 @@ for that. First, the number of features is not very high, so the
 penalization is not very useful and we actually lost to much
 information. Secondly, the model was not overfitting. Still, the values
 of the RMSE and R\^{}2 are very close, so the difference is not very
-important, and those penalization show us that the slope and mean are
+important, and those penalizations show us that the slope and mean are
 indead the most important features to predict the fat value of a cookie.
 
 \end{document}
