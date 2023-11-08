@@ -254,3 +254,113 @@ It means that the linear model is better than the Lasso and Ridge models to pred
 There could be several reasons for that. First, the number of features is not very high, so the penalization is not very useful and we actually lost to much information. 
 Secondly, the model was not overfitting.
 Still, the values of the RMSE and R^2 are very close, so the difference is not very important, and those penalizations show us that the slope and mean are indead the most important features to predict the fat value of a cookie. 
+
+---
+
+# V2
+
+```{r}
+cookies_data <- read.csv("cookies.csv")
+head(cookies_data)
+```
+```{r}
+dim(cookies_data)
+```
+We see that there are 700 co-variables. We can assume that some of them are less important than the others. To see this, let's do a Ridge regression and look at the coefficient of each co-variables.
+
+```{r}
+library(glmnet)
+y <- cookies_data[, 1]
+X <- cookies_data[, -1]
+
+cv_ridge_model <- cv.glmnet(as.matrix(X), y, alpha=0)
+
+print(cv_ridge_model)
+
+best_lambda <- cv_ridge_model$lambda.min
+print(paste("Best lambda :", best_lambda))
+```
+
+```{r}
+final_ridge_model <- glmnet(as.matrix(X), y, alpha=0, lambda=best_lambda)
+
+abs_coef <- abs(coef(final_ridge_model))
+```
+
+```{r}
+min(abs_coef)
+paste("Number of value higher than 10^-1 : ", sum(abs_coef > 10^-1))
+paste("Number of value higher than 10^-2 : ", sum(abs_coef > 10^-2))
+paste("Number of value higher than 10^-3 : ", sum(abs_coef > 10^-3))
+paste("Number of value higher than 10^-4 : ", sum(abs_coef > 10^-4))
+```
+We can see that the majority of the coefficients are lower than $10^{-1}$. Then, we could think that a lot of our co-variables are useless to predict the target variable, aka the fat.
+
+Let's do a Lasso regression to see which co-variables are actually useful to predict the fat : 
+
+```{r}
+cv_lasso_model <- cv.glmnet(as.matrix(X), y, alpha=1)
+
+best_lambda <- cv_lasso_model$lambda.min
+
+best_model_lasso <- glmnet(as.matrix(X), y, lambda = best_lambda, alpha = 1)
+print(best_model_lasso)
+```
+We can see that our model is pretty accurate (deviance of 98.09%) with only 31 co-variables used among the 700 existant.
+
+Actually, we've shown that even less co-variables are useless than what we thought.
+
+Now let's try to split our dataset into train and test dataset:
+
+Ridge :
+```{r}
+# We split into 2 dataframe randomly
+indice_train <- sample(1:nrow(cookies_data), 0.8 * nrow(cookies_data))
+train_data <- cookies_data[indice_train, ]
+test_data <- cookies_data[-indice_train, ]
+
+# We define X & y for both dataframe
+y_train <- train_data[, 1]
+X_train <- train_data[, -1]
+y_test <- test_data[, 1]
+X_test <- test_data[, -1]
+
+# We train the model with the best value for lambda
+cv_ridge_model <- cv.glmnet(as.matrix(X_train), y_train, alpha = 0)
+best_lambda_ridge <- cv_ridge_model$lambda.min
+ridge_model <- glmnet(as.matrix(X_train), y_train, lambda = best_lambda_ridge, alpha = 0)
+
+predictions_ridge <- predict(ridge_model, s = best_lambda_ridge, newx = as.matrix(X_test))
+
+error_ridge <- sqrt(mean((predictions_ridge - y_test)^2))
+print(paste("RMSE Ridge :", round(error_ridge, 2)))
+```
+
+
+Lasso : 
+```{r}
+# We split into 2 dataframe randomly
+indice_train <- sample(1:nrow(cookies_data), 0.8 * nrow(cookies_data))
+train_data <- cookies_data[indice_train, ]
+test_data <- cookies_data[-indice_train, ]
+
+# We define X & y for both dataframe
+y_train <- train_data[, 1]
+X_train <- train_data[, -1]
+y_test <- test_data[, 1]
+X_test <- test_data[, -1]
+
+# We train the model with the best value for lambda
+cv_lasso_model <- cv.glmnet(as.matrix(X_train), y_train, alpha = 1)
+best_lambda <- cv_lasso_model$lambda.min
+lasso_model <- glmnet(as.matrix(X_train), y_train, lambda = best_lambda, alpha = 1)
+
+# We make prediction on the X_test
+predictions_lasso <- predict(lasso_model, s = best_lambda, newx = as.matrix(X_test))
+
+# We compute the RMSE
+error_lasso  <- sqrt(mean((predictions_lasso - y_test)^2))
+print(paste("RMSE :", round(error_lasso, 2)))
+```
+
+We see that the RMSE for the Lasso regression is way better than for the Ridge one. (de rien pour l'analyse)
