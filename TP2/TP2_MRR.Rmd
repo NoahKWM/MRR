@@ -272,14 +272,63 @@ We see that there are 700 co-variables. We can assume that some of them are less
 library(glmnet)
 y <- cookies_data[, 1]
 X <- cookies_data[, -1]
+lambda <- 10^seq(-4, 1, length.out = 1000)
 
-cv_ridge_model <- cv.glmnet(as.matrix(X), y, alpha=0)
-
+cv_ridge_model <- cv.glmnet(as.matrix(X), y, alpha=0, lambda = (lambda), standardize = TRUE)
+plot(cv_ridge_model)
 print(cv_ridge_model)
 
 best_lambda <- cv_ridge_model$lambda.min
+best_lambda_ridge_model <- best_lambda
 print(paste("Best lambda :", best_lambda))
 ```
+
+```{r}	
+t <- lm.ridge(fat ~ ., data = cookies_data, lambda = lambda)
+plot(log(lambda), t$GCV, type = "l", col = "red1", xlab = "Lambda", ylab = "GCV")
+```
+
+
+Let's use AIC and BIC criteria to recheck this value.
+
+```{r}
+# AIC and BIC
+n <- nrow(X)
+p <- ncol(X)
+ridge_model_aic <- n * log(cv_ridge_model$cvm) + 2 * p
+ridge_model_bic <- n * log(cv_ridge_model$cvm) + log(n) * p
+
+plot(log(cv_ridge_model$lambda), ridge_model_aic, col = "red1", type = "l", ylab = "Information Criterion", 
+     xlim = range(log(cv_ridge_model$lambda)), ylim = c(min(ridge_model_aic, ridge_model_bic), max(ridge_model_aic, ridge_model_bic)))
+
+lines(log(cv_ridge_model$lambda), ridge_model_bic, col = "blue1")
+legend("bottomright", lwd = 1, col = c("red1", "blue1"), legend = c("AIC", "BIC"))
+
+
+abline(v = log(best_lambda_ridge_model_aic), col = "red1", lty = 2)  # Vertical line for AIC
+abline(v = log(best_lambda_ridge_model_bic), col = "blue1", lty = 2)
+
+best_lambda_ridge_model_aic <- cv_ridge_model$lambda[which.min(ridge_model_aic)] # lambda that gives the lowest AIC
+best_lambda_ridge_model_bic <- cv_ridge_model$lambda[which.min(ridge_model_bic)] # lambda that gives the lowest BIC
+```
+
+Now we can compare the different values for $\lambda$ we found.
+
+```{r}
+lambda_ridge_model_values <- c(best_lambda_ridge_model, best_lambda_ridge_model_aic, best_lambda_ridge_model_bic)
+lambda_ridge_model_values
+```
+
+There are the same. We can also plot the Regularization Path.
+
+```{r}
+plot(cv_ridge_model$glmnet.fit, xvar = "lambda", ylim = c(-100, 100))
+abline(h = 0, col = 6, lty = 3)
+abline(v = log(best_lambda_ridge_model), col = 7, lty = 3)
+legend("bottomleft", legend = c(colnames(X), "Zero", "Best Lambda"), col = 1:7, lty = 1)
+```
+
+
 
 ```{r}
 final_ridge_model <- glmnet(as.matrix(X), y, alpha=0, lambda=best_lambda)
