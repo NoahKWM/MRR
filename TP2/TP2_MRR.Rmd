@@ -34,16 +34,16 @@ print(paste("Best lambda :", best_lambda))
 We can also plot the Regularization Path.
 
 ```{r, echo=FALSE}
-plot(cv_ridge_model$glmnet.fit, xvar = "lambda", main="Ridge Regression")
+plot(cv_ridge_model$glmnet.fit, xvar = "lambda", main="Ridge Regression", xlim=c(1.5, 7))
 abline(h = 0, col = 6, lty = 3)
 abline(v = log(best_lambda_ridge_model), col = 7, lty = 3)
-legend("bottomleft", legend = c(colnames(X), "Zero", "Best Lambda"), col = 1:7, lty = 1)
+legend("bottomleft", legend = c(colnames(X)), col = 1:700, lty = 1)
 ```
 Now let's take a look at the coefficients of the best model we've managed to get.
 ```{r}
 final_ridge_model <- glmnet(as.matrix(X), y, alpha=0, lambda=best_lambda)
 
-abs_coef <- abs(coef(final_ridge_model))
+abs_coef <- abs(coef(final_ridge_model)[-1])
 ```
 
 ```{r, echo=FALSE}
@@ -54,6 +54,9 @@ paste("Number of value higher than 10^-3 : ", sum(abs_coef > 10^-3))
 paste("Number of value higher than 10^-4 : ", sum(abs_coef > 10^-4))
 ```
 We can see that the majority of the coefficients are lower than $10^{-1}$. Then, we could think that a lot of our co-variables are useless to predict the target variable.
+(We scaled the data when doing the Ridge regression)
+
+---
 
 Let's do a Lasso regression to see if there are less co-variables that are actually useful to predict the fat : 
 
@@ -68,17 +71,24 @@ best_model_lasso <- glmnet(as.matrix(X), y, lambda = best_lambda_lasso, alpha = 
 Again, here's the regularization path :
 
 ```{r}
-plot(cv_lasso_model$glmnet.fit, xvar = "lambda", main="Lasso Regression")
+plot(cv_lasso_model$glmnet.fit, xvar = "lambda", main="Lasso Regression", xlim=c(-5.5, 0))
 abline(h = 0, col = 6, lty = 3)
 abline(v = log(best_lambda_lasso), col = 7, lty = 3)
 legend("bottomleft", legend = c(colnames(X), "Zero", "Best Lambda"), col = 1:7, lty = 1)
 print(log(best_lambda_lasso))
 ```
-Now, let's see how co-variables we have left : 
+Now, let's see how many co-variables we have left : 
+
+```{r, echo=FALSE}
+non_zero_coefficients <- (best_model_lasso$beta[which(best_model_lasso$beta != 0)])
+non_zero_spectra <- (colnames(X)[which(best_model_lasso$beta != 0)])
+data.frame(non_zero_spectra, non_zero_coefficients)
+```
 
 ```{r, echo=FALSE}
 print(best_model_lasso)
 ```
+
 
 We can see that our model is pretty accurate (deviance of 98.09%) with only 31 co-variables used among the 700 existant.
 
@@ -139,7 +149,7 @@ print(paste("RMSE :", round(error_lasso, 2)))
 
 We see that the RMSE for the Lasso regression is way better than for the Ridge one.
 
-Finally, let's verify if only 31 co-variables are useful for our prediction by using Step forward selection :
+Finally, let's verify if only 31 co-variables are useful for our prediction by using a Step forward selection :
 
 ```{r, echo=FALSE}
 resall<-glm(fat~.,data=cookies_data,family=gaussian)
@@ -152,3 +162,10 @@ print(resfor)
 ```
 
 We see that we also get only 31 degrees of freedom, the same as the lasso regression.
+
+## Conclusion
+
+Because we had 700 covariables, which is way greater than the number of observation (32), the matrix $X^{T}X$ is not invertible and the covariables might be correlated. Therefore, we can't use the OLS method to find the best coefficients.
+We had to use a Ridge regression or a Lasso regression to find the best coefficients and a correct number of covariables. We've seen that the Lasso regression was way better than the Ridge one.
+This is because the Lasso regression is a method that is used to get a sparce solution, which is what we wanted.
+We've also seen that only 31 co-variables were useful to predict the fat. We've also seen that the RMSE of the Lasso regression was close to 0.1, which is really good: the model is really accurate and predictive.  
