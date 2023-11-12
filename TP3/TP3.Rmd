@@ -7,11 +7,12 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls()); graphics.off()
 ```
 
 # II. Cookies Study
 
-##Logistic regression model using features
+## Logistic regression model using features
 
 Let's begin with processing our dataset :
 ```{r}
@@ -60,16 +61,49 @@ model <- glm(YBin ~ ., data = cookies_features_data, family = "binomial")
 # Display the summary of the model
 summary(model)
 ```
-And here are the results of the regression :
+
+We see, according to the p-values, that only the standard deviation and the slope seem to have an impact on the class of fat for a given cookie, as they are around 0.05. The other features are not significant.
+
+Let's see the confusion matrix and the accuracy of our model with a k-fold:
 ```{r}
-p1 <- predict.glm(model, type = "response")
-res <- as.numeric(p1 > 0.5)
+n <- nrow(cookies_features_data)
+ind <- sample(n)
+tab <- cookies_features_data[ind, ]
+K <- 4
+lblock <- trunc(n/K)
+predictions <- c()
+true_values <- tab$YBin
+for (k in (1:K)) {
+  indk <- ((k-1) * lblock + 1):(k * lblock);
+  tabTrain <- tab[-indk, ];
+  modTrain <- glm(YBin ~ . , data = tabTrain, family = "binomial");
+  testk <- predict.glm(modTrain, newdata = tab[indk, ], type = "response");
+  predk <- ifelse(testk > 0.5, 1, 0);
+  predictions <- c(predictions, predk);
+}
 
-table(cookies_features_data$YBin, res)
+table(true_values, predictions)
+
 ```
-We see that
 
-We see, according to the p-values, that only the standard deviation seems to have an impact on the class of fat for a given cookie. However, the threshold is relatively higher than usual (0.1 here) so it might be difficult to conclude.
+```{r, echo=FALSE}
+print(paste("Accuracy:", round(mean(true_values == predictions), 2)))
+print(paste("Error rate:", round(mean(true_values != predictions), 2)))
+```
+
+To conclude, we can say that our model is relatively accurate, with an accuracy close to 0.8.
+It means that our logistic model can explain or predict if the fat will be higher or lower than the median of all the fat, given the previous computed features.
+However, because we only have 32 observations, we can't be sure that our model is really accurate.
+
+
+Let's see the correlation between the features :
+```{r}
+cor(cookies_features_data[, -1])
+```
+
+We can also try to study the odd-values, but it wouldn't be relevant, as the covariables (features) seem dependent of each other.
+
+
 
 ## Logistic regression model using the spectra
 
@@ -90,7 +124,7 @@ head(spectra_predictors$YBin)
 
 Let's add some penalization to the model.
 
-Because we have a lot of covariables and few observations, we see that $p \ll n$ and so we need to select some of them to make the model simpler.
+Because we have a lot of covariables and few observations, we see that $p \gg n$ and so we need to select some of them to make the model simpler.
 
 To do so, we're going to use a $l_1$-regularization :
 
@@ -104,23 +138,30 @@ X <- as.matrix(spectra_predictors[, -ncol(spectra_predictors)])  # Exclude the Y
 y <- spectra_predictors$YBin
 
 # Fit regularized logistic regression model (L1 penalty)
-lambdas <- 10^seq(-4, -2, 0.01)
+lambdas <- 10^seq(-4, -1.5, 0.01)
 cv_model_lasso <- cv.glmnet(X, y, family = "binomial", alpha = 1, lambda = lambdas)
 
 # Display the optimal lambda
 best_lambda_lasso <- cv_model_lasso$lambda.min
 cat("Optimal lambda for Lasso:", best_lambda_lasso, "\n")
+lasso_model <- glmnet(X, y, family = "binomial", alpha = 1, lambda = best_lambda_lasso)
+print(lasso_model)
 
 plot(cv_model_lasso)
 print(cv_model_lasso)
+
+non_zero_coefficients <- (lasso_model$beta[which(lasso_model$beta != 0)])
+non_zero_spectra <- (colnames(X)[which(lasso_model$beta != 0)])
+data.frame(non_zero_spectra, non_zero_coefficients)
+
 ```
 
 Here's the regulariztions path :
 ```{r}
 plot(cv_model_lasso$glmnet.fit, xvar = "lambda", main="Lasso Regression")
-abline(h = 0, col = 6, lty = 3)
-abline(v = log(best_lambda_lasso), col = 7, lty = 3)
-legend("bottomleft", legend = c(colnames(X), "Zero", "Best Lambda"), col = 1:7, lty = 1)
+abline(h = 0, col = "blue", lty = 3)
+abline(v = log(best_lambda_lasso), col = "red", lty = 3)
+legend("bottomleft", legend = c(colnames(X), "Zero", "Best Lambda"), col = c(1:700, "blue", "red"), lty = 1)
 ```
 
 
@@ -137,37 +178,31 @@ print(best_model_lasso)
 Let's now test its perfomance by using a K-fold :
 
 ```{r}
-# We split into 2 dataframe randomly
-indice_train <- sample(1:nrow(spectra_predictors), 0.8 * nrow(spectra_predictors))
-train_data <- spectra_predictors[indice_train, ] # use to train the model
-test_data <- spectra_predictors[-indice_train, ] # use to test the model 
+n <- nrow(spectra_predictors)
+ind <- sample(n)
+tab <- spectra_predictors[ind, ]
+K <- 4
+lblock <- trunc(n/K)
+predictions <- c()
+true_values <- tab$YBin
+for (k in (1:K)) {
+  indk <- ((k-1) * lblock + 1):(k * lblock);
+  tabTrain <- tab[-indk, ];
+  formula <- as.formula(paste("YBin ~ ", paste(non_zero_spectra, collapse = " + ")))
+  modTrain <- glm(formula, data = tabTrain, family = "binomial");
+  testk <- predict.glm(modTrain, newdata = tab[indk, ], type = "response");
+  predk <- ifelse(testk > 0.5, 1, 0);
+  predictions <- c(predictions, predk);
+}
 
-# We define X & y for both dataframe
-y_train <- train_data$YBin
-X_train <- train_data[, -ncol(train_data)]
-# ---
-y_test <- test_data$YBin
-X_test <- test_data[, -ncol(test_data)]
-
-# We train the model with another cross-validation
-# in order to get the best value for lambda
-cv_lasso_model <- cv.glmnet(as.matrix(X_train), y_train, alpha = 1, family = "binomial", grouped = FALSE)
-# We choose the best lambda
-best_lambda <- cv_lasso_model$lambda.min
-# Using the best lambda, we define our model
-lasso_model <- glmnet(as.matrix(X_train), y_train, lambda = best_lambda, alpha = 1, family = "binomial")
-
-# We make prediction on the X_test
-predictions_lasso <- predict.glmnet(lasso_model, s = best_lambda, newx = as.matrix(X_test), type = "response")
-
-# We compute the class for our prediction using the threshold 0.5
-predictions <- as.numeric(predictions_lasso > 0.5)
-
-# Compute the performance
-performance <- mean(predictions == y_test)
-print(paste("Performance globale de la validation croisée (accuracy):", round(performance, 2)))
-
-# Confusion matrix 
-print(table(test_data$YBin, predictions))
+table(true_values, predictions)
 ```
-We can conclude that our model using Lasso regression is pretty accurate, and so with only 9 co-variables instead of 700 !
+
+```{r, echo=FALSE}
+print(paste("Accuracy:", round(mean(predictions == true_values), 2)))
+print(paste("Error rate:", round(mean(predictions != true_values), 2)))
+```
+
+We can conclude that our model using Lasso regression is pretty accurate, and so with only less co-variables instead of 700.
+It means that our logistic model can explain or predict if the fat will be higher or lower than the median of all the fat, given these co-variables.
+However, because we only have 32 observations, we can't be sure that our model is really accurate.

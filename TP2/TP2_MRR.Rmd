@@ -94,56 +94,18 @@ We can see that our model is pretty accurate (deviance of 98.09%) with only 31 c
 
 Actually, we've shown that even less co-variables are useless than what we thought.
 
-Now let's try to split our dataset into train and test dataset:
+Let's compare the RMSE of the Ridge regression and the Lasso regression :
 
 **Ridge** :
 ```{r}
-# We split into 2 dataframe randomly
-indice_train <- sample(1:nrow(cookies_data), 0.8 * nrow(cookies_data))
-train_data <- cookies_data[indice_train, ]
-test_data <- cookies_data[-indice_train, ]
-
-# We define X & y for both dataframe
-y_train <- train_data[, 1]
-X_train <- train_data[, -1]
-y_test <- test_data[, 1]
-X_test <- test_data[, -1]
-
-# We train the model with the best value for lambda
-cv_ridge_model <- cv.glmnet(as.matrix(X_train), y_train, alpha = 0, grouped = FALSE)
-best_lambda_ridge <- cv_ridge_model$lambda.min
-ridge_model <- glmnet(as.matrix(X_train), y_train, lambda = best_lambda_ridge, alpha = 0)
-
-predictions_ridge <- predict(ridge_model, s = best_lambda_ridge, newx = as.matrix(X_test))
-
-error_ridge <- sqrt(mean((predictions_ridge - y_test)^2))
+error_ridge <- sqrt(min(cv_ridge_model$cvm))
 print(paste("RMSE Ridge :", round(error_ridge, 2)))
 ```
 
 
 **Lasso** : 
 ```{r}
-# We split into 2 dataframe randomly
-indice_train <- sample(1:nrow(cookies_data), 0.8 * nrow(cookies_data))
-train_data <- cookies_data[indice_train, ]
-test_data <- cookies_data[-indice_train, ]
-
-# We define X & y for both dataframe
-y_train <- train_data[, 1]
-X_train <- train_data[, -1]
-y_test <- test_data[, 1]
-X_test <- test_data[, -1]
-
-# We train the model with the best value for lambda
-cv_lasso_model <- cv.glmnet(as.matrix(X_train), y_train, alpha = 1, grouped = FALSE)
-best_lambda <- cv_lasso_model$lambda.min
-lasso_model <- glmnet(as.matrix(X_train), y_train, lambda = best_lambda, alpha = 1)
-
-# We make prediction on the X_test
-predictions_lasso <- predict(lasso_model, s = best_lambda, newx = as.matrix(X_test))
-
-# We compute the RMSE
-error_lasso  <- sqrt(mean((predictions_lasso - y_test)^2))
+error_lasso  <- sqrt(min(cv_lasso_model$cvm))
 print(paste("RMSE Lasso :", round(error_lasso, 2)))
 ```
 
