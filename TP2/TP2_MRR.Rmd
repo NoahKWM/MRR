@@ -144,7 +144,7 @@ predictions_lasso <- predict(lasso_model, s = best_lambda, newx = as.matrix(X_te
 
 # We compute the RMSE
 error_lasso  <- sqrt(mean((predictions_lasso - y_test)^2))
-print(paste("RMSE :", round(error_lasso, 2)))
+print(paste("RMSE Lasso :", round(error_lasso, 2)))
 ```
 
 We see that the RMSE for the Lasso regression is way better than for the Ridge one.
@@ -167,5 +167,5 @@ We see that we also get only 31 degrees of freedom, the same as the lasso regres
 
 Because we had 700 covariables, which is way greater than the number of observation (32), the matrix $X^{T}X$ is not invertible and the covariables might be correlated. Therefore, we can't use the OLS method to find the best coefficients.
 We had to use a Ridge regression or a Lasso regression to find the best coefficients and a correct number of covariables. We've seen that the Lasso regression was way better than the Ridge one.
-This is because the Lasso regression is a method that is used to get a sparce solution, which is what we wanted.
-We've also seen that only 31 co-variables were useful to predict the fat. We've also seen that the RMSE of the Lasso regression was close to 0.1, which is really good: the model is really accurate and predictive.  
+This is because the Lasso regression is a method that is used to get a sparse solution, which is what we wanted.
+We've also seen that only 31 co-variables were useful to predict the fat. We've also seen that the RMSE of the Lasso regression was very low comapred to the ridge one, which is really good: the model is really accurate and predictive.  
