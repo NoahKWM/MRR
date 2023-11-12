@@ -65,9 +65,9 @@ And here are the results of the regression :
 p1 <- predict.glm(model, type = "response")
 res <- as.numeric(p1 > 0.5)
 
-print(res)
-print(cookies_features_data$YBin)
+table(cookies_features_data$YBin, res)
 ```
+We see that
 
 We see, according to the p-values, that only the standard deviation seems to have an impact on the class of fat for a given cookie. However, the threshold is relatively higher than usual (0.1 here) so it might be difficult to conclude.
 
@@ -133,6 +133,7 @@ best_model_lasso <- glmnet(X, y, family = "binomial", alpha = 1, lambda = best_l
 
 print(best_model_lasso)
 ```
+
 Let's now test its perfomance by using a K-fold :
 
 ```{r}
