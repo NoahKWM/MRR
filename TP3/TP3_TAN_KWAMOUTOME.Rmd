@@ -93,7 +93,7 @@ print(paste("Error rate:", round(mean(true_values != predictions), 2)))
 
 To conclude, we can say that our model is relatively accurate, with an accuracy close to 0.8.
 It means that our logistic model can explain or predict if the fat will be higher or lower than the median of all the fat, given the previous computed features.
-However, because we only have 32 observations, we can't be sure that our model is really accurate.
+However, because we only have 32 observations, we can't be sure that our model is really accurate: we would need more observations to be sure of that.
 
 
 Let's see the correlation between the features :
@@ -165,7 +165,7 @@ legend("bottomleft", legend = c(colnames(X), "Zero", "Best Lambda"), col = c(1:7
 ```
 
 
-Since with the best $\lambda$ we get 9 not null coefficients over the 700 initial covariables, against 6 for the 1 Standard Error $\lambda$, we choose to use the $\lambda_{min}$.
+Since with the best $\lambda$ we get 9 not null coefficients (including intercept) over the 700 initial covariables, (and 7 for the 1 Standard Error $\lambda$), we choose to use the $\lambda_{min}$.
 
 Here's the Lasso regression with the best $\lambda$ :
 
@@ -189,7 +189,7 @@ for (k in (1:K)) {
   indk <- ((k-1) * lblock + 1):(k * lblock);
   tabTrain <- tab[-indk, ];
   formula <- as.formula(paste("YBin ~ ", paste(non_zero_spectra, collapse = " + ")))
-  modTrain <- glm(formula, data = tabTrain, family = "binomial");
+  modTrain <- glm(formula, data = tabTrain, family = "binomial", maxit = 10000);
   testk <- predict.glm(modTrain, newdata = tab[indk, ], type = "response");
   predk <- ifelse(testk > 0.5, 1, 0);
   predictions <- c(predictions, predk);
@@ -205,4 +205,4 @@ print(paste("Error rate:", round(mean(predictions != true_values), 2)))
 
 We can conclude that our model using Lasso regression is pretty accurate, and so with only less co-variables instead of 700.
 It means that our logistic model can explain or predict if the fat will be higher or lower than the median of all the fat, given these co-variables.
-However, because we only have 32 observations, we can't be sure that our model is really accurate.
+However, because we only have 32 observations, we can't be sure that our model is really accurate: we would need more observations to be sure of that.
