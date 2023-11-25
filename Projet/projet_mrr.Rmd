@@ -14,8 +14,8 @@ rm(list=ls()); graphics.off()
 
 This project is about the diagnosis of breast cancer. Thanks to the dataset "Breast Cancer Wisconsin (Diagnostic) Data Set" from the computer sciences department at the University of Wisconsin, we will try to predict if a tumor is benign or malignant.
 
-### Imports
-```{r}
+## Data Loading
+```{r, message=FALSE}
 library("ggplot2")
 library("MASS")
 library("reshape2")
@@ -25,13 +25,13 @@ data <- read.csv('data.csv', header = TRUE)
 ```
 
 
-### Data exploration
+## Preprocessing and Data Exploration
 Let's take a look at all the missing values of the dataset, if there's any, and clean the dataset:
 ```{r, echo=FALSE}
-missing_values <- colSums(is.na(data))
-print(missing_values)
 data <- data[, -ncol(data)]
 data <- data[, -1]
+missing_values <- colSums(is.na(data))
+print(missing_values)
 ```
 
 There's no missing values in this dataset.
@@ -40,16 +40,17 @@ So now, we have 569 observations and 30 covariables to predict 1 target variable
 Now, let's explain the covariables: 
 
 There are ten real-valued features computed for each cell nucleus:
-a) radius (mean of distances from center to points on the perimeter)
-b) texture (standard deviation of gray-scale values)
-c) perimeter
-d) area
-e) smoothness (local variation in radius lengths)
-f) compactness (perimeter^2 / area - 1.0)
-g) concavity (severity of concave portions of the contour)
-h) concave points (number of concave portions of the contour)
-i) symmetry
-j) fractal dimension ("coastline approximation" - 1)
+
+  a) radius (mean of distances from center to points on the perimeter)
+  b) texture (standard deviation of gray-scale values)
+  c) perimeter
+  d) area
+  e) smoothness (local variation in radius lengths)
+  f) compactness (perimeter^2 / area - 1.0)
+  g) concavity (severity of concave portions of the contour)
+  h) concave points (number of concave portions of the contour)
+  i) symmetry
+  j) fractal dimension ("coastline approximation" - 1)
 
 Then, the mean, the standard error and the "worst" or largest (mean of the three
 largest values) of these features were computed for each image,
@@ -69,7 +70,7 @@ p <- ncol(data)
 # Description of the dataset
 
 
-### Data visualization
+## Data visualization
 
 Let's now visualize the data to see if there's any outliers or if the data is normally distributed.
 
@@ -88,7 +89,8 @@ data_worst <- data[, var_worst]
 ```{r, echo=FALSE}
 ggplot(data = melt(data_mean, id.var = "diagnosis"), aes(value)) +
   geom_histogram(bins = 20, aes(fill=diagnosis), alpha = 0.5) +
-  facet_wrap(~variable, scales = "free_x")
+  facet_wrap(~variable, scales = "free_x") + 
+  theme(plot.margin = unit(c(1, 0, 1, 0), "cm"))
 
 ggplot(data = melt(data_se, id.var = "diagnosis"), aes(value)) +
   geom_histogram(bins = 20, aes(fill=diagnosis), alpha = 0.5) +
@@ -116,17 +118,18 @@ We can see that there's a strong correlation between some features, which can be
 
 
 We can now try 3 diffents approaches, and we will apply the same methods on each of them in the future:
-- No covariables deletion
-- Covariables deletion by highest correlation
-- Covariables deletion by PCA
+  
+  - No covariables deletion
+  - Covariables deletion by highest correlation
+  - Covariables deletion by PCA
 
 
-#### No covariables deletion
+### No covariables deletion
 
 We still use the same dataset.
 
 
-#### Covariables deletion by highest correlation
+### Covariables deletion by highest correlation
 
 If two covariables are highly correlated, (for instance, if the correlation is higher than 0.8), we will delete the one that has the highest mean of correlations with the others.
 We can use the function "findCorrelation" from the package "caret" to provide us the said covariables that we will delete.
@@ -148,10 +151,10 @@ print(colnames(data_clear))
 
 We now have a new dataset with less covariables, only 16.
 However, this approch is not perfect, because we only scan the correlation between two covariables once:
-there could still be high correlations between variables, and deleting more covariables could reduce to much information.
+there could still be high correlations between variables if 3 or more covariables were correlated together, and deleting more covariables could reduce to much information.
 
 
-#### Covariables deletion by PCA
+### Covariables deletion by PCA
 
 We will now use the PCA method to reduce the number of covariables.
 We will use the function "prcomp" from the package "stats" to do so.
@@ -178,7 +181,7 @@ Together, they explain 63.24% of the variance.
 ggplot(data_pca, aes(x=PC1, y=PC2, col=data$diagnosis)) + geom_point(alpha=0.5)
 ```
 
-Visually, we can see that there's a clear separation between benign and malignant tumors.
+Visually, we can see that there's a clear separation between benign and malignant tumors, but only thanks to the first principal component.
 Let's draw their respective distributions:
   
 ```{r, echo=FALSE}
