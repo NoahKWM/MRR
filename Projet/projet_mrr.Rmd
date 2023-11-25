@@ -2,7 +2,7 @@
 title: "MRR Project"
 author: "Noah KWA MOUTOME - Victor TAN"
 date: "2023-11-13"
-output: html_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
