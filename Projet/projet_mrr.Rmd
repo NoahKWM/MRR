@@ -89,7 +89,8 @@ data_worst <- data[, var_worst]
 ```{r, echo=FALSE}
 ggplot(data = melt(data_mean, id.var = "diagnosis"), aes(value)) +
   geom_histogram(bins = 20, aes(fill=diagnosis), alpha = 0.5) +
-  facet_wrap(~variable, scales = "free_x")
+  facet_wrap(~variable, scales = "free_x") + 
+  theme(plot.margin = unit(c(1, 0, 1, 0), "cm"))
 
 ggplot(data = melt(data_se, id.var = "diagnosis"), aes(value)) +
   geom_histogram(bins = 20, aes(fill=diagnosis), alpha = 0.5) +
@@ -117,17 +118,18 @@ We can see that there's a strong correlation between some features, which can be
 
 
 We can now try 3 diffents approaches, and we will apply the same methods on each of them in the future:
-- No covariables deletion
-- Covariables deletion by highest correlation
-- Covariables deletion by PCA
+  
+  - No covariables deletion
+  - Covariables deletion by highest correlation
+  - Covariables deletion by PCA
 
 
-#### No covariables deletion
+### No covariables deletion
 
 We still use the same dataset.
 
 
-#### Covariables deletion by highest correlation
+### Covariables deletion by highest correlation
 
 If two covariables are highly correlated, (for instance, if the correlation is higher than 0.8), we will delete the one that has the highest mean of correlations with the others.
 We can use the function "findCorrelation" from the package "caret" to provide us the said covariables that we will delete.
@@ -149,10 +151,10 @@ print(colnames(data_clear))
 
 We now have a new dataset with less covariables, only 16.
 However, this approch is not perfect, because we only scan the correlation between two covariables once:
-there could still be high correlations between variables, and deleting more covariables could reduce to much information.
+there could still be high correlations between variables if 3 or more covariables were correlated together, and deleting more covariables could reduce to much information.
 
 
-#### Covariables deletion by PCA
+### Covariables deletion by PCA
 
 We will now use the PCA method to reduce the number of covariables.
 We will use the function "prcomp" from the package "stats" to do so.
@@ -179,7 +181,7 @@ Together, they explain 63.24% of the variance.
 ggplot(data_pca, aes(x=PC1, y=PC2, col=data$diagnosis)) + geom_point(alpha=0.5)
 ```
 
-Visually, we can see that there's a clear separation between benign and malignant tumors.
+Visually, we can see that there's a clear separation between benign and malignant tumors, but only thanks to the first principal component.
 Let's draw their respective distributions:
   
 ```{r, echo=FALSE}
