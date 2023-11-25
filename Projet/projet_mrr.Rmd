@@ -15,7 +15,7 @@ rm(list=ls()); graphics.off()
 This project is about the diagnosis of breast cancer. Thanks to the dataset "Breast Cancer Wisconsin (Diagnostic) Data Set" from the computer sciences department at the University of Wisconsin, we will try to predict if a tumor is benign or malignant.
 
 ### Imports
-```{r}
+```{r, message=FALSE}
 library("ggplot2")
 library("MASS")
 library("reshape2")
@@ -28,10 +28,10 @@ data <- read.csv('data.csv', header = TRUE)
 ### Data exploration
 Let's take a look at all the missing values of the dataset, if there's any, and clean the dataset:
 ```{r, echo=FALSE}
-missing_values <- colSums(is.na(data))
-print(missing_values)
 data <- data[, -ncol(data)]
 data <- data[, -1]
+missing_values <- colSums(is.na(data))
+print(missing_values)
 ```
 
 There's no missing values in this dataset.
@@ -40,16 +40,17 @@ So now, we have 569 observations and 30 covariables to predict 1 target variable
 Now, let's explain the covariables: 
 
 There are ten real-valued features computed for each cell nucleus:
-a) radius (mean of distances from center to points on the perimeter)
-b) texture (standard deviation of gray-scale values)
-c) perimeter
-d) area
-e) smoothness (local variation in radius lengths)
-f) compactness (perimeter^2 / area - 1.0)
-g) concavity (severity of concave portions of the contour)
-h) concave points (number of concave portions of the contour)
-i) symmetry
-j) fractal dimension ("coastline approximation" - 1)
+
+  a) radius (mean of distances from center to points on the perimeter)
+  b) texture (standard deviation of gray-scale values)
+  c) perimeter
+  d) area
+  e) smoothness (local variation in radius lengths)
+  f) compactness (perimeter^2 / area - 1.0)
+  g) concavity (severity of concave portions of the contour)
+  h) concave points (number of concave portions of the contour)
+  i) symmetry
+  j) fractal dimension ("coastline approximation" - 1)
 
 Then, the mean, the standard error and the "worst" or largest (mean of the three
 largest values) of these features were computed for each image,
