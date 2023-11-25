@@ -14,7 +14,7 @@ rm(list=ls()); graphics.off()
 
 This project is about the diagnosis of breast cancer. Thanks to the dataset "Breast Cancer Wisconsin (Diagnostic) Data Set" from the computer sciences department at the University of Wisconsin, we will try to predict if a tumor is benign or malignant.
 
-### Imports
+## Data Loading
 ```{r, message=FALSE}
 library("ggplot2")
 library("MASS")
@@ -25,7 +25,7 @@ data <- read.csv('data.csv', header = TRUE)
 ```
 
 
-### Data exploration
+## Preprocessing and Data Exploration
 Let's take a look at all the missing values of the dataset, if there's any, and clean the dataset:
 ```{r, echo=FALSE}
 data <- data[, -ncol(data)]
@@ -70,7 +70,7 @@ p <- ncol(data)
 # Description of the dataset
 
 
-### Data visualization
+## Data visualization
 
 Let's now visualize the data to see if there's any outliers or if the data is normally distributed.
 
