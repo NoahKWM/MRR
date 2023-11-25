@@ -1,0 +1,133 @@
+---
+title: "MRR Project"
+author: "Noah KWA MOUTOME - Victor TAN"
+date: "2023-11-13"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data Analysis
+
+```{r}
+data <- read.csv('data.csv', header = TRUE)
+head(data)
+dim(data)
+```
+Let's take a look at all the missing values of the dataset
+```{r}
+missing_values <- colSums(is.na(data))
+print(missing_values)
+dim(data)
+```
+There's no missing values in this dataset but the column X which is full of NA.
+Seems like the X column is useless, let's ignore this column
+We don't need the id column as well, so let's get rid of it.
+```{r, echo=FALSE}
+data <- data[, -ncol(data)]
+data <- data[, -1]
+head(data)
+dim(data)
+```
+
+So now, we have 569 observations and 30 covariables to predict the target variable, which is the diagnosis.
+
+Now, our dataset is like this : 
+
+Ten real-valued features are computed for each cell nucleus:
+a) radius (mean of distances from center to points on the perimeter)
+b) texture (standard deviation of gray-scale values)
+c) perimeter
+d) area
+e) smoothness (local variation in radius lengths)
+f) compactness (perimeter^2 / area - 1.0)
+g) concavity (severity of concave portions of the contour)
+h) concave points (number of concave portions of the contour)
+i) symmetry
+j) fractal dimension ("coastline approximation" - 1)
+
+The mean, standard error and "worst" or largest (mean of the three
+largest values) of these features were computed for each image,
+resulting in 30 features. For instance, field 3 is Mean Radius, field
+13 is Radius SE, field 23 is Worst Radius.
+
+
+Let's see if some of these covariables are corrrelated :
+
+```{r, echo=FALSE}
+X <- data[-1]
+y <- data[1]
+```
+
+
+```{r}
+library(ggplot2)
+
+var_mean <- c("diagnosis", "radius_mean", "texture_mean", "perimeter_mean", "area_mean", "smoothness_mean", "compactness_mean", "concavity_mean", "concave.points_mean", "symmetry_mean", "fractal_dimension_mean")
+data_mean <- data[, var_mean]
+
+var_se <- c("diagnosis", "radius_se", "texture_se","perimeter_se", "area_se", "smoothness_se", "compactness_se", "concavity_se", "concave.points_se", "symmetry_se", "fractal_dimension_se" )
+data_se <- data[, var_se]
+
+var_worst <- c("diagnosis", "radius_worst", "texture_worst","perimeter_worst", "area_worst", "smoothness_worst", "compactness_worst", "concavity_worst", "concave.points_worst", "symmetry_worst", "fractal_dimension_worst" )
+data_worst <- data[, var_worst]
+```
+
+```{r}
+library(reshape2)
+library(ggplot2)
+
+ggplot(data = melt(data_mean, id.var = "diagnosis"), aes(value)) +
+  geom_histogram(bins = 20, aes(fill=diagnosis), alpha = 0.5) +
+  facet_wrap(~variable, scales = "free_x")
+
+ggplot(data = melt(data_se, id.var = "diagnosis"), aes(value)) +
+  geom_histogram(bins = 20, aes(fill=diagnosis), alpha = 0.5) +
+  facet_wrap(~variable, scales = "free_x")
+
+ggplot(data = melt(data_worst, id.var = "diagnosis"), aes(value)) +
+  geom_histogram(bins = 20, aes(fill=diagnosis), alpha = 0.5) +
+  facet_wrap(~variable, scales = "free_x")
+```
+
+
+It looks like most of the features are normally distributed.
+However, there's no clear separation between benign and malignant for most of the features except "concave.points_worst", "perimeter_worst", "radius_worst" and "concave.points_mean".
+
+Let's now look at the coorelation plot :
+
+```{r}
+library(corrplot)
+cor_mat <- cor(data[, -1])
+corrplot(cor_mat, order = "hclust", tl.cex = 0.7) 
+```
+
+```{r}
+library(caret)
+
+corr_var <- colnames(data)[findCorrelation(x = cor_mat, cutoff = 0.8, verbose = TRUE)]
+```
+
+```{r}
+corr_var
+```
+
+```{r}
+covar_clear <- data[, which(!colnames(data) %in% corr_var)]
+head(covar_clear)
+dim(covar_clear)
+```
+
+```{r}
+data_clear <- cbind(covar_clear, diagnosis = data$diagnosis)
+head(data_clear)
+dim(data_clear)
+```
+
+```{r}
+library(ggplot2)
+
+```
+
