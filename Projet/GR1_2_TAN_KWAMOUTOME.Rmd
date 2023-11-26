@@ -14,7 +14,6 @@ rm(list=ls()); graphics.off()
 
 This project is about the diagnosis of breast cancer. Thanks to the dataset "Breast Cancer Wisconsin (Diagnostic) Data Set" from the computer sciences department at the University of Wisconsin, we will try to predict if a tumor is benign or malignant.
 
-## Data Loading
 ```{r, message=FALSE, echo=FALSE}
 library("ggplot2")
 library("MASS")
@@ -140,7 +139,7 @@ corr_var <- colnames(data)[findCorrelation(x = corr_mat, cutoff = 0.8, verbose =
 covar_clear <- data[, which(!colnames(data) %in% corr_var)]
 ```
 
-Then, we only keep the covariables that are not in the list "corr_var".
+Then, we only keep the covariables that are not in the list "corr_var", which gives us:
 ```{r, echo=FALSE}
 data_clear <- cbind(diagnosis = data$diagnosis, covar_clear)
 print(colnames(data_clear))
