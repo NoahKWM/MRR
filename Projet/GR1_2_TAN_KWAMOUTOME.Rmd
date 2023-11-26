@@ -15,7 +15,7 @@ rm(list=ls()); graphics.off()
 This project is about the diagnosis of breast cancer. Thanks to the dataset "Breast Cancer Wisconsin (Diagnostic) Data Set" from the computer sciences department at the University of Wisconsin, we will try to predict if a tumor is benign or malignant.
 
 ## Data Loading
-```{r, message=FALSE}
+```{r, message=FALSE, echo=FALSE}
 library("ggplot2")
 library("MASS")
 library("reshape2")
@@ -30,11 +30,9 @@ Let's take a look at all the missing values of the dataset, if there's any, and 
 ```{r, echo=FALSE}
 data <- data[, -ncol(data)]
 data <- data[, -1]
-missing_values <- colSums(is.na(data))
-print(missing_values)
 ```
 
-There's no missing values in this dataset.
+There's no missing values in this dataset, but we have to drop the last unnamed column and the "id" one which is not usefull.
 So now, we have 569 observations and 30 covariables to predict 1 target variable, which is the diagnosis.
 
 Now, let's explain the covariables: 
@@ -73,17 +71,17 @@ p <- ncol(data)
 ## Data visualization
 
 Let's now visualize the data to see if there's any outliers or if the data is normally distributed.
-
+These histograms are repetitive, so we will only show the means of the 10 features. The others are still available in the code for the reader to see.
 ```{r, echo=FALSE}
 
 var_mean <- c("diagnosis", "radius_mean", "texture_mean", "perimeter_mean", "area_mean", "smoothness_mean", "compactness_mean", "concavity_mean", "concave.points_mean", "symmetry_mean", "fractal_dimension_mean")
 data_mean <- data[, var_mean]
 
-var_se <- c("diagnosis", "radius_se", "texture_se","perimeter_se", "area_se", "smoothness_se", "compactness_se", "concavity_se", "concave.points_se", "symmetry_se", "fractal_dimension_se" )
-data_se <- data[, var_se]
+# var_se <- c("diagnosis", "radius_se", "texture_se","perimeter_se", "area_se", "smoothness_se", "compactness_se", "concavity_se", "concave.points_se", "symmetry_se", "fractal_dimension_se" )
+# data_se <- data[, var_se]
 
-var_worst <- c("diagnosis", "radius_worst", "texture_worst","perimeter_worst", "area_worst", "smoothness_worst", "compactness_worst", "concavity_worst", "concave.points_worst", "symmetry_worst", "fractal_dimension_worst" )
-data_worst <- data[, var_worst]
+# var_worst <- c("diagnosis", "radius_worst", "texture_worst","perimeter_worst", "area_worst", "smoothness_worst", "compactness_worst", "concavity_worst", "concave.points_worst", "symmetry_worst", "fractal_dimension_worst" )
+# data_worst <- data[, var_worst]
 ```
 
 ```{r, echo=FALSE}
@@ -92,13 +90,13 @@ ggplot(data = melt(data_mean, id.var = "diagnosis"), aes(value)) +
   facet_wrap(~variable, scales = "free_x") + 
   theme(plot.margin = unit(c(1, 0, 1, 0), "cm"))
 
-ggplot(data = melt(data_se, id.var = "diagnosis"), aes(value)) +
-  geom_histogram(bins = 20, aes(fill=diagnosis), alpha = 0.5) +
-  facet_wrap(~variable, scales = "free_x")
+# ggplot(data = melt(data_se, id.var = "diagnosis"), aes(value)) +
+#   geom_histogram(bins = 20, aes(fill=diagnosis), alpha = 0.5) +
+#   facet_wrap(~variable, scales = "free_x")
 
-ggplot(data = melt(data_worst, id.var = "diagnosis"), aes(value)) +
-  geom_histogram(bins = 20, aes(fill=diagnosis), alpha = 0.5) +
-  facet_wrap(~variable, scales = "free_x")
+# ggplot(data = melt(data_worst, id.var = "diagnosis"), aes(value)) +
+#   geom_histogram(bins = 20, aes(fill=diagnosis), alpha = 0.5) +
+#   facet_wrap(~variable, scales = "free_x")
 ```
 
 
@@ -135,8 +133,7 @@ If two covariables are highly correlated, (for instance, if the correlation is h
 We can use the function "findCorrelation" from the package "caret" to provide us the said covariables that we will delete.
 
 ```{r, echo=FALSE}
-corr_var <- colnames(data)[findCorrelation(x = corr_mat, cutoff = 0.8, verbose = TRUE)]
-corr_var
+corr_var <- colnames(data)[findCorrelation(x = corr_mat, cutoff = 0.8, verbose = FALSE)]
 ```
 
 ```{r, echo=FALSE}
@@ -174,21 +171,27 @@ data_pca <- as.data.frame(pca$x)
 ```
 
 Though, 17 covariables means 17 dimensions, which is too much to visualize.
-So we can also choose to keep only 2 covariables, which will allow us to visualize the data.
+So we can temporarily choose to keep 2 covariables, which will allow us to visualize the data.
 Together, they explain 63.24% of the variance.
   
 ```{r, echo=FALSE}
 ggplot(data_pca, aes(x=PC1, y=PC2, col=data$diagnosis)) + geom_point(alpha=0.5)
 ```
 
-Visually, we can see that there's a clear separation between benign and malignant tumors, but only thanks to the first principal component.
-Let's draw their respective distributions:
-  
+Visually, we can see that there's a clear separation between benign and malignant tumors, but only thanks to the first principal component:
+If we guess the center of the two clusters of diagnosis, we can see that their PC1 values are far enough from each other to be able to separate them (around -3 for the malignant tumors and 2.5 for the benign ones),
+but their PC2 values are too close to each other (around 0), so we can't separate them with this principal component.
+Let's draw only the first distribution on PC1 as the PC2 one is not useful (the reader can still see the PC2 distribution in the code):
+
 ```{r, echo=FALSE}
 ggplot(data_pca, aes(x=PC1, fill=data$diagnosis)) + geom_density(alpha=0.5)
-ggplot(data_pca, aes(x=PC2, fill=data$diagnosis)) + geom_density(alpha=0.5)
+# ggplot(data_pca, aes(x=PC2, fill=data$diagnosis)) + geom_density(alpha=0.5)
 ```
 
 With the first PC1, we can see that the means of the distributions are far enough from each other to be able to separate them.
-However, with the second PC2, the means are too close to each other, so we can't separate them with this principal component.
-And given that the following principal components explain even less variance, we can't use them to separate the distributions either.
+But the PC1 only explains 44.27% of the variance, so it doesn't really give us a lot of information.
+Let's keep the 17 covariables for the next steps.
+
+# Model training and selection
+
+We will train models with the 3 approaches.
