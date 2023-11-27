@@ -83,7 +83,6 @@ for (k in (1:K)) {
 }
 
 table(true_values, predictions)
-
 ```
 
 ```{r, echo=FALSE}

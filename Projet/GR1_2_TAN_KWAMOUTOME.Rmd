@@ -20,6 +20,7 @@ library("MASS")
 library("reshape2")
 library("corrplot")
 library("caret")
+library("glmnet")
 data <- read.csv('data.csv', header = TRUE)
 ```
 
@@ -166,7 +167,7 @@ According to the summary, we need to keep 17 covariables to do so (99.11% of the
 
 ```{r, echo=FALSE}
 pca <- prcomp(data[, -1], center = TRUE, scale. = TRUE, rank. = 17)
-data_pca <- as.data.frame(pca$x)
+data_pca <- cbind(as.data.frame(pca$x), diagnosis = data$diagnosis)
 ```
 
 Though, 17 covariables means 17 dimensions, which is too much to visualize.
@@ -191,6 +192,111 @@ With the first PC1, we can see that the means of the distributions are far enoug
 But the PC1 only explains 44.27% of the variance, so it doesn't really give us a lot of information.
 Let's keep the 17 covariables for the next steps.
 
-# Model training and selection
+---
 
-We will train models with the 3 approaches.
+### Ridge on total dataset
+
+```{r}
+y <- ifelse(y == "M", 1, 0)
+X <- as.matrix(X)
+```
+
+```{r}
+lambdas <- 10^seq(-4, -1.5, 0.01)
+cv_model_ridge <- cv.glmnet(X, y, family= "binomial", alpha= 0, lambda= lambdas, standardize= TRUE)
+best_lambda_ridge <- cv_model_ridge$lambda.min
+plot(cv_model_ridge)
+```
+
+```{r}
+ind <- sample(n)
+tab <- data[ind, ]
+K <- 4
+lblock <- trunc(n/K)
+predictions <- c()
+true_values <- tab$diagnosis
+for (k in (1:K)) {
+  if (k != K) {
+    indk <- ((k-1) * lblock + 1):(k * lblock);
+  }
+  else {
+    indk <- ((k-1) * lblock + 1):n;
+  }
+  tabTrain <- tab[-indk, ];
+  tmp_y <- tabTrain$diagnosis;
+  tmp_X <- tabTrain[-1]; 
+  modTrain <- glmnet(tmp_X, tmp_y, family = "binomial", alpha = 0, lambda = best_lambda_ridge);
+  testk <- predict(modTrain, newx = tab[indk, ][-1], type = "response", s= best_lambda_ridge);
+  predk <- ifelse(testk > 0.5, 1, 0);
+  predictions <- c(predictions, predk);
+}
+
+table(true_values, predictions)
+print(paste("Accuracy: ", round(mean(predictions == true_values), 2)))
+```
+
+
+
+### Covariables deletion by highest correlation
+
+```{r}
+data_clear$diagnosis <- ifelse(data_clear$diagnosis == "M", 1, 0)
+```
+
+```{r}
+ind <- sample(n)
+tab_clear <- data_clear[ind, ]
+K <- 4
+lblock <- trunc(n/K)
+predictions_clear <- c()
+true_values_clear <- tab_clear$diagnosis
+for (k in (1:K)) {
+  if (k != K) {
+    indk <- ((k-1) * lblock + 1):(k * lblock);
+  }
+  else {
+    indk <- ((k-1) * lblock + 1):n;
+  }
+  tabTrain_clear <- tab_clear[-indk, ];
+  modTrain_clear <- glm(diagnosis ~ . , data = tabTrain_clear, family = "binomial");
+  testk_clear <- predict.glm(modTrain_clear, newdata = tab_clear[indk, ], type = "response");
+  predk_clear <- ifelse(testk_clear > 0.5, 1, 0);
+  predictions_clear <- c(predictions_clear, predk_clear);
+}
+
+table(true_values_clear, predictions_clear)
+print(paste("Accuracy: ", round(mean(predictions_clear == true_values_clear), 2)))
+```
+
+
+
+### Covariables deletion by PCA
+
+```{r}
+data_pca$diagnosis <- ifelse(data_pca$diagnosis == "M", 1, 0)
+```
+
+```{r}
+ind <- sample(n)
+tab_pca <- data_pca[ind, ]
+K <- 4
+lblock <- trunc(n/K)
+predictions_pca <- c()
+true_values_pca <- tab_pca$diagnosis
+for (k in (1:K)) {
+  if (k != K) {
+    indk <- ((k-1) * lblock + 1):(k * lblock);
+  }
+  else {
+    indk <- ((k-1) * lblock + 1):n;
+  }
+  tabTrain_pca <- tab_pca[-indk, ];
+  modTrain_pca <- glm(diagnosis ~ . , data = tabTrain_pca, family = "binomial");
+  testk_pca <- predict.glm(modTrain_pca, newdata = tab_pca[indk, ], type = "response");
+  predk_pca <- ifelse(testk_pca > 0.5, 1, 0);
+  predictions_pca <- c(predictions_pca, predk_pca);
+}
+
+table(true_values_pca, predictions_pca)
+print(paste("Accuracy: ", round(mean(predictions_pca == true_values_pca), 2)))
+```
