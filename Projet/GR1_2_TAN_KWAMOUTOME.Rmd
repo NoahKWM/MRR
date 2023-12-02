@@ -192,6 +192,38 @@ With the first PC1, we can see that the means of the distributions are far enoug
 But the PC1 only explains 44.27% of the variance, so it doesn't really give us a lot of information.
 Let's keep the 17 covariables for the next steps.
 
+
+### Backward selection
+
+We will now use the backward selection method to delete the covariables that are not useful for the model.
+
+```{r, echo=FALSE}
+data_back <- data
+data_back$diagnosis <- ifelse(data$diagnosis == "M", 1, 0)
+res <- glm(diagnosis ~ . , data = data_back, family = "binomial")
+
+resback <- step(res, direction = "backward", trace = 0)
+print(resback)
+
+selected_vars <- colnames(model.matrix(resback))[!is.na(coef(resback))][-1]
+
+# Mettre à jour data_back pour ne conserver que les covariables non nulles
+data_back <- data_back[, c("diagnosis", selected_vars)]
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
 ---
 
 ### Ridge on total dataset
@@ -209,12 +241,45 @@ plot(cv_model_ridge)
 ```
 
 ```{r}
+data_ridge <- data
+data_ridge$diagnosis <- ifelse(data$diagnosis == "M", 1, 0)
 ind <- sample(n)
-tab <- data[ind, ]
-K <- 4
+tab_ridge <- data_ridge[ind, ]
+K <- 5
 lblock <- trunc(n/K)
-predictions <- c()
-true_values <- tab$diagnosis
+predictions_ridge <- c()
+true_values_ridge <- tab_ridge$diagnosis
+for (k in (1:K)) {
+  if (k != K) {
+    indk_ridge <- ((k-1) * lblock + 1):(k * lblock);
+  }
+  else {
+    indk_ridge <- ((k-1) * lblock + 1):n;
+  }
+  tabTrain_ridge <- tab_ridge[-indk_ridge, ];
+  tmp_y <- tabTrain_ridge$diagnosis;
+  tmp_X <- tabTrain_ridge[-1]; 
+  modTrain_ridge <- glmnet(tmp_X, tmp_y, family = "binomial", alpha = 0, lambda = best_lambda_ridge);
+  testk_ridge <- predict(modTrain_ridge, newx = as.matrix(tab_ridge[indk_ridge, ][-1]), type = "response", s= best_lambda_ridge);
+  predk_ridge <- ifelse(testk_ridge > 0.5, 1, 0);
+  predictions_ridge <- c(predictions_ridge, predk_ridge);
+}
+
+table(true_values_ridge, predictions_ridge)
+print(paste("Accuracy: ", round(mean(predictions_ridge == true_values_ridge), 2)))
+```
+
+
+### Covariables deletion by Backward selection
+
+
+```{r}
+ind <- sample(n)
+tab_back <- data_back[ind, ]
+K <- 5
+lblock <- trunc(n/K)
+predictions_back <- c()
+true_values_back <- tab_back$diagnosis
 for (k in (1:K)) {
   if (k != K) {
     indk <- ((k-1) * lblock + 1):(k * lblock);
@@ -222,18 +287,35 @@ for (k in (1:K)) {
   else {
     indk <- ((k-1) * lblock + 1):n;
   }
-  tabTrain <- tab[-indk, ];
-  tmp_y <- tabTrain$diagnosis;
-  tmp_X <- tabTrain[-1]; 
-  modTrain <- glmnet(tmp_X, tmp_y, family = "binomial", alpha = 0, lambda = best_lambda_ridge);
-  testk <- predict(modTrain, newx = tab[indk, ][-1], type = "response", s= best_lambda_ridge);
-  predk <- ifelse(testk > 0.5, 1, 0);
-  predictions <- c(predictions, predk);
+  tabTrain_back <- tab_back[-indk, ];
+  modTrain_back <- glm(diagnosis ~ . , data = tabTrain_back, family = "binomial");
+  testk_back <- predict.glm(modTrain_back, newdata = tab_back[indk, ][-1], type = "response");
+  predk_back <- ifelse(testk_back > 0.5, 1, 0);
+  predictions_back <- c(predictions_back, predk_back);
 }
 
-table(true_values, predictions)
-print(paste("Accuracy: ", round(mean(predictions == true_values), 2)))
+table(true_values_back, predictions_back)
+print(paste("Accuracy: ", round(mean(predictions_back == true_values_back), 2)))
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -246,7 +328,7 @@ data_clear$diagnosis <- ifelse(data_clear$diagnosis == "M", 1, 0)
 ```{r}
 ind <- sample(n)
 tab_clear <- data_clear[ind, ]
-K <- 4
+K <- 5
 lblock <- trunc(n/K)
 predictions_clear <- c()
 true_values_clear <- tab_clear$diagnosis
@@ -259,7 +341,7 @@ for (k in (1:K)) {
   }
   tabTrain_clear <- tab_clear[-indk, ];
   modTrain_clear <- glm(diagnosis ~ . , data = tabTrain_clear, family = "binomial");
-  testk_clear <- predict.glm(modTrain_clear, newdata = tab_clear[indk, ], type = "response");
+  testk_clear <- predict.glm(modTrain_clear, newdata = tab_clear[indk, ][-1], type = "response");
   predk_clear <- ifelse(testk_clear > 0.5, 1, 0);
   predictions_clear <- c(predictions_clear, predk_clear);
 }
@@ -279,7 +361,7 @@ data_pca$diagnosis <- ifelse(data_pca$diagnosis == "M", 1, 0)
 ```{r}
 ind <- sample(n)
 tab_pca <- data_pca[ind, ]
-K <- 4
+K <- 5
 lblock <- trunc(n/K)
 predictions_pca <- c()
 true_values_pca <- tab_pca$diagnosis
@@ -300,3 +382,8 @@ for (k in (1:K)) {
 table(true_values_pca, predictions_pca)
 print(paste("Accuracy: ", round(mean(predictions_pca == true_values_pca), 2)))
 ```
+
+On remarque que la méthode de Ridge est la plus précise, avec une accuracy de 0.98.
+En seconde position, on retrouve la méthode de PCA, avec une accuracy de 0.97.
+Enfin, on retrouve les méthodes de backward selection et de suppression des covariables par corrélation, avec une accuracy de 0.96.
+
