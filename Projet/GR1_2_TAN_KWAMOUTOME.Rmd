@@ -12,9 +12,16 @@ rm(list=ls()); graphics.off()
 
 # Introduction
 
-This project is about the diagnosis of breast cancer. Thanks to the dataset "Breast Cancer Wisconsin (Diagnostic) Data Set" from the computer sciences department at the University of Wisconsin, we will try to predict if a tumor is benign or malignant.
+Nowadays, in the realm of healthcare and data analytic, diagnosis of breast cancer has become a crucial task: In
+2020, 685 000 deaths due to breast cancer were recorded according to the World Health Organization. Though,
+roughly half of breast cancers occur in women without any specific risk factors other than sex and age. It means
+that the diagnosis and prediction of malignant tumors is of the utmost importance, as it enables cancer patients
+to be treated as soon and effectively as possible or even prevent risk.
+This project is about the diagnosis and prediction of breast cancer. Thanks to the dataset “Breast Cancer Wisconsin
+(Diagnostic) Data Set” from the computer sciences department at the University of Wisconsin, we will try to develop
+predictive models capable to predict if a tumor is benign or malignant given pictures of tumors’ cells.
 
-```{r, message=FALSE, echo=FALSE}
+```{r, message=FALSE}
 library("ggplot2")
 library("MASS")
 library("reshape2")
@@ -25,11 +32,14 @@ data <- read.csv('data.csv', header = TRUE)
 ```
 
 
-## Preprocessing and Data Exploration
+# Preprocessing and Data Exploration
+
 Let's take a look at all the missing values of the dataset, if there's any, and clean the dataset:
 ```{r, echo=FALSE}
 data <- data[, -ncol(data)]
 data <- data[, -1]
+missing_values <- sum(colSums(is.na(data)))
+print(paste("Number of missing values: ", missing_values))
 ```
 
 There's no missing values in this dataset, but we have to drop the last unnamed column and the "id" one which is not usefull.
@@ -54,6 +64,8 @@ Then, the mean, the standard error and the "worst" or largest (mean of the three
 largest values) of these features were computed for each image,
 resulting in 30 features. For instance, field 3 is Mean Radius, field
 13 is Radius SE, field 23 is Worst Radius.
+Furthermore, there are 212 Malignant diagnoses and 357 Benign diagnoses, which is a relatively balanced split: we
+do have enough data from each diagnoses to study the dataset correctly.
 
 
 ```{r, echo=FALSE}
@@ -71,17 +83,17 @@ p <- ncol(data)
 ## Data visualization
 
 Let's now visualize the data to see if there's any outliers or if the data is normally distributed.
-These histograms are repetitive, so we will only show the means of the 10 features. The others are still available in the code for the reader to see.
+These histograms are repetitive, so we will only show the means of the 10 features.
 ```{r, echo=FALSE}
 
 var_mean <- c("diagnosis", "radius_mean", "texture_mean", "perimeter_mean", "area_mean", "smoothness_mean", "compactness_mean", "concavity_mean", "concave.points_mean", "symmetry_mean", "fractal_dimension_mean")
 data_mean <- data[, var_mean]
 
-# var_se <- c("diagnosis", "radius_se", "texture_se","perimeter_se", "area_se", "smoothness_se", "compactness_se", "concavity_se", "concave.points_se", "symmetry_se", "fractal_dimension_se" )
-# data_se <- data[, var_se]
+var_se <- c("diagnosis", "radius_se", "texture_se","perimeter_se", "area_se", "smoothness_se", "compactness_se", "concavity_se", "concave.points_se", "symmetry_se", "fractal_dimension_se" )
+data_se <- data[, var_se]
 
-# var_worst <- c("diagnosis", "radius_worst", "texture_worst","perimeter_worst", "area_worst", "smoothness_worst", "compactness_worst", "concavity_worst", "concave.points_worst", "symmetry_worst", "fractal_dimension_worst" )
-# data_worst <- data[, var_worst]
+var_worst <- c("diagnosis", "radius_worst", "texture_worst","perimeter_worst", "area_worst", "smoothness_worst", "compactness_worst", "concavity_worst", "concave.points_worst", "symmetry_worst", "fractal_dimension_worst" )
+data_worst <- data[, var_worst]
 ```
 
 ```{r, echo=FALSE}
@@ -90,13 +102,13 @@ ggplot(data = melt(data_mean, id.var = "diagnosis"), aes(value)) +
   facet_wrap(~variable, scales = "free_x") + 
   theme(plot.margin = unit(c(1, 0, 1, 0), "cm"))
 
-# ggplot(data = melt(data_se, id.var = "diagnosis"), aes(value)) +
-#   geom_histogram(bins = 20, aes(fill=diagnosis), alpha = 0.5) +
-#   facet_wrap(~variable, scales = "free_x")
+ggplot(data = melt(data_se, id.var = "diagnosis"), aes(value)) +
+  geom_histogram(bins = 20, aes(fill=diagnosis), alpha = 0.5) +
+  facet_wrap(~variable, scales = "free_x")
 
-# ggplot(data = melt(data_worst, id.var = "diagnosis"), aes(value)) +
-#   geom_histogram(bins = 20, aes(fill=diagnosis), alpha = 0.5) +
-#   facet_wrap(~variable, scales = "free_x")
+ggplot(data = melt(data_worst, id.var = "diagnosis"), aes(value)) +
+  geom_histogram(bins = 20, aes(fill=diagnosis), alpha = 0.5) +
+  facet_wrap(~variable, scales = "free_x")
 ```
 
 
@@ -108,32 +120,60 @@ So a visualization of the values of these features is not enough.
 Let's now look at the coorelation plot :
 
 ```{r, echo=FALSE}
-corr_mat <- cor(data[, -1])
-corrplot(corr_mat, order = "hclust", tl.cex = 0.7) 
+data$diagnosis <- (ifelse(data$diagnosis == "M", 1, 0))
+corr_mat <- cor(data)
+corrplot(corr_mat, order = "hclust", tl.cex = 0.7)
+data$diagnosis <- as.factor(data$diagnosis) 
 ```
 
 We can see that there's a strong correlation between some features, which can be a problem for the model.
 
+However, there is a significant correlation between diagnosis and the following variables: diagnosis, radius mean,
+perimeter mean, area mean, concave.points mean, radius worst, perimeter worst, area worst, concave.points worst.
+That could mean that these co-variables may be important for the prediction of the target variable.
 
-We can now try 3 diffents approaches, and we will apply the same methods on each of them in the future:
-  
-  - No covariables deletion
-  - Covariables deletion by highest correlation
-  - Covariables deletion by PCA
+We will try 3 approaches to deal with the strong correlations between the co-variables:
+- No co-variables deletion (using Ridge regression to simplify the model)
+- Backward Selection
+- Co-variables deletion by highest correlation
+- Co-variables deletion by PCA
 
 
 ### No covariables deletion
 
-We still use the same dataset.
+We still use the same dataset, and we will use the Ridge method. We will use the best lambda which minimize
+the MRSE.
 
+
+
+### Backward selection
+
+We will now use the backward selection method to delete the covariables that are not useful for the model with
+the function ”step”.
+With this method, the co-variables left are:
+
+```{r, echo=FALSE, warning=FALSE}
+data_back <- data
+res <- glm(diagnosis ~ . , data = data_back, family = "binomial")
+
+resback <- step(res, direction = "backward", trace = 0)
+print(resback)
+
+selected_vars <- colnames(model.matrix(resback))[!is.na(coef(resback))][-1]
+
+# Mettre à jour data_back pour ne conserver que les covariables non nulles
+data_back <- data_back[, c("diagnosis", selected_vars)]
+
+```
+So we get a total of 24 co-variables, and the step method only deleted 6 co-variables, which isn’t really effective.
 
 ### Covariables deletion by highest correlation
 
 If two covariables are highly correlated, (for instance, if the correlation is higher than 0.8), we will delete the one that has the highest mean of correlations with the others.
 We can use the function "findCorrelation" from the package "caret" to provide us the said covariables that we will delete.
-
 ```{r, echo=FALSE}
-corr_var <- colnames(data)[findCorrelation(x = corr_mat, cutoff = 0.8, verbose = FALSE)]
+corr_mat_tmp <- cor(data[, -1])
+corr_var <- colnames(data)[findCorrelation(x = corr_mat_tmp, cutoff = 0.8, verbose = FALSE)]
 ```
 
 ```{r, echo=FALSE}
@@ -146,9 +186,10 @@ data_clear <- cbind(diagnosis = data$diagnosis, covar_clear)
 print(colnames(data_clear))
 ```
 
-We now have a new dataset with less covariables, only 16.
-However, this approch is not perfect, because we only scan the correlation between two covariables once:
-there could still be high correlations between variables if 3 or more covariables were correlated together, and deleting more covariables could reduce to much information.
+We now have a new dataset with less covariables, only 15, which is half of the initial variables. However, this approch is not perfect,
+because we only scan the correlation between two covariables once: there could still be high correlations between
+variables if 3 or more covariables were correlated together, and deleting more covariables could reduce too much
+information.
 
 
 ### Covariables deletion by PCA
@@ -185,7 +226,7 @@ Let's draw only the first distribution on PC1 as the PC2 one is not useful (the 
 
 ```{r, echo=FALSE}
 ggplot(data_pca, aes(x=PC1, fill=data$diagnosis)) + geom_density(alpha=0.5)
-# ggplot(data_pca, aes(x=PC2, fill=data$diagnosis)) + geom_density(alpha=0.5)
+ggplot(data_pca, aes(x=PC2, fill=data$diagnosis)) + geom_density(alpha=0.5)
 ```
 
 With the first PC1, we can see that the means of the distributions are far enough from each other to be able to separate them.
@@ -193,56 +234,30 @@ But the PC1 only explains 44.27% of the variance, so it doesn't really give us a
 Let's keep the 17 covariables for the next steps.
 
 
-### Backward selection
+# Model training and prediction
 
-We will now use the backward selection method to delete the covariables that are not useful for the model.
-
-```{r, echo=FALSE}
-data_back <- data
-data_back$diagnosis <- ifelse(data$diagnosis == "M", 1, 0)
-res <- glm(diagnosis ~ . , data = data_back, family = "binomial")
-
-resback <- step(res, direction = "backward", trace = 0)
-print(resback)
-
-selected_vars <- colnames(model.matrix(resback))[!is.na(coef(resback))][-1]
-
-# Mettre à jour data_back pour ne conserver que les covariables non nulles
-data_back <- data_back[, c("diagnosis", selected_vars)]
-
-```
+We will use a k-fold method to build a model training with the 4 approaches, and predict the diagnosis. We will
+use K = 5, meaning that 20% of the 569 observations will compose the test set and 80% will compose the training
+set.
 
 
-
-
-
-
-
-
-
-
-
-
-
----
 
 ### Ridge on total dataset
 
-```{r}
+```{r, echo=FALSE}
 y <- ifelse(y == "M", 1, 0)
 X <- as.matrix(X)
 ```
 
-```{r}
+```{r, echo=FALSE, warning=FALSE}
 lambdas <- 10^seq(-4, -1.5, 0.01)
 cv_model_ridge <- cv.glmnet(X, y, family= "binomial", alpha= 0, lambda= lambdas, standardize= TRUE)
 best_lambda_ridge <- cv_model_ridge$lambda.min
 plot(cv_model_ridge)
 ```
 
-```{r}
+```{r, echo=FALSE, warning=FALSE}
 data_ridge <- data
-data_ridge$diagnosis <- ifelse(data$diagnosis == "M", 1, 0)
 ind <- sample(n)
 tab_ridge <- data_ridge[ind, ]
 K <- 5
@@ -273,7 +288,7 @@ print(paste("Accuracy: ", round(mean(predictions_ridge == true_values_ridge), 2)
 ### Covariables deletion by Backward selection
 
 
-```{r}
+```{r, echo=FALSE, warning=FALSE}
 ind <- sample(n)
 tab_back <- data_back[ind, ]
 K <- 5
@@ -288,7 +303,7 @@ for (k in (1:K)) {
     indk <- ((k-1) * lblock + 1):n;
   }
   tabTrain_back <- tab_back[-indk, ];
-  modTrain_back <- glm(diagnosis ~ . , data = tabTrain_back, family = "binomial");
+  modTrain_back <- glm(diagnosis ~ . , data = tabTrain_back, family = "binomial", maxit= 10000);
   testk_back <- predict.glm(modTrain_back, newdata = tab_back[indk, ][-1], type = "response");
   predk_back <- ifelse(testk_back > 0.5, 1, 0);
   predictions_back <- c(predictions_back, predk_back);
@@ -300,32 +315,9 @@ print(paste("Accuracy: ", round(mean(predictions_back == true_values_back), 2)))
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ### Covariables deletion by highest correlation
 
-```{r}
-data_clear$diagnosis <- ifelse(data_clear$diagnosis == "M", 1, 0)
-```
-
-```{r}
+```{r, echo=FALSE, warning=FALSE}
 ind <- sample(n)
 tab_clear <- data_clear[ind, ]
 K <- 5
@@ -340,7 +332,7 @@ for (k in (1:K)) {
     indk <- ((k-1) * lblock + 1):n;
   }
   tabTrain_clear <- tab_clear[-indk, ];
-  modTrain_clear <- glm(diagnosis ~ . , data = tabTrain_clear, family = "binomial");
+  modTrain_clear <- glm(diagnosis ~ . , data = tabTrain_clear, family = "binomial", maxit = 10000);
   testk_clear <- predict.glm(modTrain_clear, newdata = tab_clear[indk, ][-1], type = "response");
   predk_clear <- ifelse(testk_clear > 0.5, 1, 0);
   predictions_clear <- c(predictions_clear, predk_clear);
@@ -354,11 +346,7 @@ print(paste("Accuracy: ", round(mean(predictions_clear == true_values_clear), 2)
 
 ### Covariables deletion by PCA
 
-```{r}
-data_pca$diagnosis <- ifelse(data_pca$diagnosis == "M", 1, 0)
-```
-
-```{r}
+```{r, echo=FALSE, warning=FALSE}
 ind <- sample(n)
 tab_pca <- data_pca[ind, ]
 K <- 5
@@ -373,7 +361,7 @@ for (k in (1:K)) {
     indk <- ((k-1) * lblock + 1):n;
   }
   tabTrain_pca <- tab_pca[-indk, ];
-  modTrain_pca <- glm(diagnosis ~ . , data = tabTrain_pca, family = "binomial");
+  modTrain_pca <- glm(diagnosis ~ . , data = tabTrain_pca, family = "binomial", maxit= 10000);
   testk_pca <- predict.glm(modTrain_pca, newdata = tab_pca[indk, ], type = "response");
   predk_pca <- ifelse(testk_pca > 0.5, 1, 0);
   predictions_pca <- c(predictions_pca, predk_pca);
@@ -383,7 +371,18 @@ table(true_values_pca, predictions_pca)
 print(paste("Accuracy: ", round(mean(predictions_pca == true_values_pca), 2)))
 ```
 
-On remarque que la méthode de Ridge est la plus précise, avec une accuracy de 0.98.
-En seconde position, on retrouve la méthode de PCA, avec une accuracy de 0.97.
-Enfin, on retrouve les méthodes de backward selection et de suppression des covariables par corrélation, avec une accuracy de 0.96.
+We can see that the Ridge method is the most accurate, followed by PCA by only a slight percentage. Moreover,
+the Ridge method gives the lowest False Negative, which is the only value that we want to minimize: False positives
+(when the prediction gives ”Malignant” when the true value is ”Benign”) are not really a issue. But False negatives
+(when the prediction gives ”Benign” when the true value is ”Malignant”) are the worst case scenario, as the patient
+might be in danger without our knowledge.
 
+
+# Conclusion
+
+The results of our models obtained from the breast cancer classification project seem to be really accurate overall.
+The highest accuracy, Sensitivity and Specificity of the prediction on 569 observations is achieved by the Ridge
+Model. It may hold promise for supporting clinical decision-making of the diagnosis of tumors given images.
+On a broader scale, we can then decide to make another type of model, where we can make a greater penalization
+on False negatives, which are the cases we want to avoid. It will probably reduce the accuracy of the current model,
+but would be more helpful in our scenarios.
