@@ -69,10 +69,9 @@ do have enough data from each diagnoses to study the dataset correctly.
 
 
 ```{r, echo=FALSE}
-X <- data[-1]
-y <- data[1]
 n <- nrow(data)
 p <- ncol(data)
+data$diagnosis <- as.factor(ifelse(data$diagnosis == "M", 1, 0))
 ```
 
 
@@ -116,11 +115,16 @@ It looks like most of the features are normally distributed, and there seems to 
 However, there's no clear separation between benign and malignant for most of the features except "concave.points_worst", "perimeter_worst", "radius_worst" and "concave.points_mean".
 So a visualization of the values of these features is not enough.
 
+Also, we can see that the scale of the features is not the same, which could be a problem for the model.
+We will use the function "scale" to standardize the covariables.
+
+```{r, echo=FALSE}
+data[, -1] <- scale(data[, -1])
+```
 
 Let's now look at the coorelation plot :
 
 ```{r, echo=FALSE}
-data$diagnosis <- (ifelse(data$diagnosis == "M", 1, 0))
 corr_mat <- cor(data)
 corrplot(corr_mat, order = "hclust", tl.cex = 0.7)
 data$diagnosis <- as.factor(data$diagnosis) 
@@ -132,19 +136,95 @@ However, there is a significant correlation between diagnosis and the following 
 perimeter mean, area mean, concave.points mean, radius worst, perimeter worst, area worst, concave.points worst.
 That could mean that these co-variables may be important for the prediction of the target variable.
 
-We will try 3 approaches to deal with the strong correlations between the co-variables:
-- No co-variables deletion (using Ridge regression to simplify the model)
+We will try 5 approaches to study the dataset:
+- No treatment
+- Ridge penalization
 - Backward Selection
 - Co-variables deletion by highest correlation
 - Co-variables deletion by PCA
 
+We will use a k-fold method to build a model training with the 4 approaches, and predict the diagnosis. We will use K = 5, meaning that 20% of the 569 observations will compose the test set and 80% will compose the training set.
 
-### No covariables deletion
+```{r, echo=FALSE}
+ind <- sample(n)
+K <- 5
+lblock <- trunc(n/K)
+```
 
-We still use the same dataset, and we will use the Ridge method. We will use the best lambda which minimize
-the MRSE.
+### No Treatment
+
+We still use the same dataset and use the glm function.
+
+```{r, echo=FALSE, warning=FALSE}
+tab <- data[ind, ]
+predictions <- c()
+true_values <- tab$diagnosis
+for (k in (1:K)) {
+  if (k != K) {
+    indk <- ((k-1) * lblock + 1):(k * lblock);
+  }
+  else {
+    indk <- ((k-1) * lblock + 1):n;
+  }
+  tabTrain <- tab[-indk, ];
+  modTrain <- glm(diagnosis ~ . , data = tabTrain, family = "binomial", maxit= 10000);
+  testk <- predict.glm(modTrain, newdata = tab[indk, ][-1], type = "response");
+  predk <- ifelse(testk > 0.5, 1, 0);
+  predictions <- c(predictions, predk);
+}
+
+table(true_values, predictions)
+print(paste("Accuracy: ", round(mean(predictions == true_values), 3)))
+```
+
+Without any treatment of the dataset, we get a 0.95 accuracy, which is already a good result. But let's see if we can improve it.
 
 
+
+### Ridge on total dataset
+
+```{r, echo=FALSE}
+y <- data$diagnosis
+X <- as.matrix(data[, -1])
+```
+
+```{r, echo=FALSE, warning=FALSE}
+lambdas <- 10^seq(-4, -1.5, 0.01)
+cv_model_ridge <- cv.glmnet(X, y, family= "binomial", alpha= 0, lambda= lambdas, standardize= TRUE)
+best_lambda_ridge <- cv_model_ridge$lambda.min
+plot(cv_model_ridge)
+```
+
+```{r, echo=FALSE, warning=FALSE}
+data_ridge <- data
+tab_ridge <- data_ridge[ind, ]
+predictions_ridge <- c()
+true_values_ridge <- tab_ridge$diagnosis
+for (k in (1:K)) {
+  if (k != K) {
+    indk <- ((k-1) * lblock + 1):(k * lblock);
+  }
+  else {
+    indk <- ((k-1) * lblock + 1):n;
+  }
+  tabTrain_ridge <- tab_ridge[-indk, ];
+  tmp_y <- tabTrain_ridge$diagnosis;
+  tmp_X <- tabTrain_ridge[-1]; 
+  modTrain_ridge <- glmnet(tmp_X, tmp_y, family = "binomial", alpha = 0, lambda = best_lambda_ridge);
+  testk_ridge <- predict(modTrain_ridge, newx = as.matrix(tab_ridge[indk, ][-1]), type = "response", s= best_lambda_ridge);
+  predk_ridge <- ifelse(testk_ridge > 0.5, 1, 0);
+  predictions_ridge <- c(predictions_ridge, predk_ridge);
+}
+
+table(true_values_ridge, predictions_ridge)
+print(paste("Accuracy: ", round(mean(predictions_ridge == true_values_ridge), 3)))
+```
+
+Without deleting any covariables, we get a 0.98 accuracy, which is a better result than the previous one.
+The Ridge method is a penalization method that shrinks the coefficients of the covariables that are not useful for the model.
+It reduces overfitting and may improve the accuracy of the model when covariables are correlated, which is the case here.
+
+But now, let's see if we can get a better accuracy by deleting some covariables.
 
 ### Backward selection
 
@@ -161,11 +241,38 @@ print(resback)
 
 selected_vars <- colnames(model.matrix(resback))[!is.na(coef(resback))][-1]
 
-# Mettre à jour data_back pour ne conserver que les covariables non nulles
 data_back <- data_back[, c("diagnosis", selected_vars)]
 
 ```
-So we get a total of 24 co-variables, and the step method only deleted 6 co-variables, which isn’t really effective.
+So we get a total of 24 co-variables, the step method only deleted 6 co-variables, which isn’t really effective.
+
+
+
+```{r, echo=FALSE, warning=FALSE}
+tab_back <- data_back[ind, ]
+predictions_back <- c()
+true_values_back <- tab_back$diagnosis
+for (k in (1:K)) {
+  if (k != K) {
+    indk <- ((k-1) * lblock + 1):(k * lblock);
+  }
+  else {
+    indk <- ((k-1) * lblock + 1):n;
+  }
+  tabTrain_back <- tab_back[-indk, ];
+  modTrain_back <- glm(diagnosis ~ . , data = tabTrain_back, family = "binomial", maxit= 10000);
+  testk_back <- predict.glm(modTrain_back, newdata = tab_back[indk, ][-1], type = "response");
+  predk_back <- ifelse(testk_back > 0.5, 1, 0);
+  predictions_back <- c(predictions_back, predk_back);
+}
+
+table(true_values_back, predictions_back)
+print(paste("Accuracy: ", round(mean(predictions_back == true_values_back), 3)))
+```
+
+We can see that the accuracy is only slightly better than the default one with no treatment. So the backward method did improve the model, but not by a lot.
+Also, the model is less accurate than the Ridge one, so it should not be privileged over the Ridge method.
+
 
 ### Covariables deletion by highest correlation
 
@@ -190,6 +297,33 @@ We now have a new dataset with less covariables, only 15, which is half of the i
 because we only scan the correlation between two covariables once: there could still be high correlations between
 variables if 3 or more covariables were correlated together, and deleting more covariables could reduce too much
 information.
+
+
+```{r, echo=FALSE, warning=FALSE}
+tab_clear <- data_clear[ind, ]
+predictions_clear <- c()
+true_values_clear <- tab_clear$diagnosis
+for (k in (1:K)) {
+  if (k != K) {
+    indk <- ((k-1) * lblock + 1):(k * lblock);
+  }
+  else {
+    indk <- ((k-1) * lblock + 1):n;
+  }
+  tabTrain_clear <- tab_clear[-indk, ];
+  modTrain_clear <- glm(diagnosis ~ . , data = tabTrain_clear, family = "binomial", maxit = 10000);
+  testk_clear <- predict.glm(modTrain_clear, newdata = tab_clear[indk, ][-1], type = "response");
+  predk_clear <- ifelse(testk_clear > 0.5, 1, 0);
+  predictions_clear <- c(predictions_clear, predk_clear);
+}
+
+table(true_values_clear, predictions_clear)
+print(paste("Accuracy: ", round(mean(predictions_clear == true_values_clear), 3)))
+```
+
+With this method, we get a better accuracy than the default one.
+However, the accuracy is globally as good as the one with the backward selection method.
+Still, it is less accurate than the Ridge method, so it should not be privileged over the Ridge method.
 
 
 ### Covariables deletion by PCA
@@ -234,123 +368,8 @@ But the PC1 only explains 44.27% of the variance, so it doesn't really give us a
 Let's keep the 17 covariables for the next steps.
 
 
-# Model training and prediction
-
-We will use a k-fold method to build a model training with the 4 approaches, and predict the diagnosis. We will
-use K = 5, meaning that 20% of the 569 observations will compose the test set and 80% will compose the training
-set.
-
-
-
-### Ridge on total dataset
-
-```{r, echo=FALSE}
-y <- ifelse(y == "M", 1, 0)
-X <- as.matrix(X)
-```
-
 ```{r, echo=FALSE, warning=FALSE}
-lambdas <- 10^seq(-4, -1.5, 0.01)
-cv_model_ridge <- cv.glmnet(X, y, family= "binomial", alpha= 0, lambda= lambdas, standardize= TRUE)
-best_lambda_ridge <- cv_model_ridge$lambda.min
-plot(cv_model_ridge)
-```
-
-```{r, echo=FALSE, warning=FALSE}
-data_ridge <- data
-ind <- sample(n)
-tab_ridge <- data_ridge[ind, ]
-K <- 5
-lblock <- trunc(n/K)
-predictions_ridge <- c()
-true_values_ridge <- tab_ridge$diagnosis
-for (k in (1:K)) {
-  if (k != K) {
-    indk_ridge <- ((k-1) * lblock + 1):(k * lblock);
-  }
-  else {
-    indk_ridge <- ((k-1) * lblock + 1):n;
-  }
-  tabTrain_ridge <- tab_ridge[-indk_ridge, ];
-  tmp_y <- tabTrain_ridge$diagnosis;
-  tmp_X <- tabTrain_ridge[-1]; 
-  modTrain_ridge <- glmnet(tmp_X, tmp_y, family = "binomial", alpha = 0, lambda = best_lambda_ridge);
-  testk_ridge <- predict(modTrain_ridge, newx = as.matrix(tab_ridge[indk_ridge, ][-1]), type = "response", s= best_lambda_ridge);
-  predk_ridge <- ifelse(testk_ridge > 0.5, 1, 0);
-  predictions_ridge <- c(predictions_ridge, predk_ridge);
-}
-
-table(true_values_ridge, predictions_ridge)
-print(paste("Accuracy: ", round(mean(predictions_ridge == true_values_ridge), 2)))
-```
-
-
-### Covariables deletion by Backward selection
-
-
-```{r, echo=FALSE, warning=FALSE}
-ind <- sample(n)
-tab_back <- data_back[ind, ]
-K <- 5
-lblock <- trunc(n/K)
-predictions_back <- c()
-true_values_back <- tab_back$diagnosis
-for (k in (1:K)) {
-  if (k != K) {
-    indk <- ((k-1) * lblock + 1):(k * lblock);
-  }
-  else {
-    indk <- ((k-1) * lblock + 1):n;
-  }
-  tabTrain_back <- tab_back[-indk, ];
-  modTrain_back <- glm(diagnosis ~ . , data = tabTrain_back, family = "binomial", maxit= 10000);
-  testk_back <- predict.glm(modTrain_back, newdata = tab_back[indk, ][-1], type = "response");
-  predk_back <- ifelse(testk_back > 0.5, 1, 0);
-  predictions_back <- c(predictions_back, predk_back);
-}
-
-table(true_values_back, predictions_back)
-print(paste("Accuracy: ", round(mean(predictions_back == true_values_back), 2)))
-```
-
-
-
-### Covariables deletion by highest correlation
-
-```{r, echo=FALSE, warning=FALSE}
-ind <- sample(n)
-tab_clear <- data_clear[ind, ]
-K <- 5
-lblock <- trunc(n/K)
-predictions_clear <- c()
-true_values_clear <- tab_clear$diagnosis
-for (k in (1:K)) {
-  if (k != K) {
-    indk <- ((k-1) * lblock + 1):(k * lblock);
-  }
-  else {
-    indk <- ((k-1) * lblock + 1):n;
-  }
-  tabTrain_clear <- tab_clear[-indk, ];
-  modTrain_clear <- glm(diagnosis ~ . , data = tabTrain_clear, family = "binomial", maxit = 10000);
-  testk_clear <- predict.glm(modTrain_clear, newdata = tab_clear[indk, ][-1], type = "response");
-  predk_clear <- ifelse(testk_clear > 0.5, 1, 0);
-  predictions_clear <- c(predictions_clear, predk_clear);
-}
-
-table(true_values_clear, predictions_clear)
-print(paste("Accuracy: ", round(mean(predictions_clear == true_values_clear), 2)))
-```
-
-
-
-### Covariables deletion by PCA
-
-```{r, echo=FALSE, warning=FALSE}
-ind <- sample(n)
 tab_pca <- data_pca[ind, ]
-K <- 5
-lblock <- trunc(n/K)
 predictions_pca <- c()
 true_values_pca <- tab_pca$diagnosis
 for (k in (1:K)) {
@@ -368,8 +387,13 @@ for (k in (1:K)) {
 }
 
 table(true_values_pca, predictions_pca)
-print(paste("Accuracy: ", round(mean(predictions_pca == true_values_pca), 2)))
+print(paste("Accuracy: ", round(mean(predictions_pca == true_values_pca), 3)))
 ```
+
+With this method, we get a better accuracy than the default one.
+The accuracy is globally better than the one with the backward selection method and the one with the covariables deletion by highest correlation method.
+But, it is still less accurate than the Ridge method, so it should not be privileged over the Ridge method.
+
 
 We can see that the Ridge method is the most accurate, followed by PCA by only a slight percentage. Moreover,
 the Ridge method gives the lowest False Negative, which is the only value that we want to minimize: False positives
