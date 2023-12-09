@@ -332,7 +332,7 @@ We will now use the PCA method to reduce the number of covariables.
 We will use the function "prcomp" from the package "stats" to do so.
 Because each covariable has a different scale, we will use the parameters "center = TRUE" and "scale. = TRUE" to standardize the covariables.
 ```{r, echo=FALSE}
-pca <- prcomp(data[, -1], center = TRUE, scale. = TRUE)
+pca <- prcomp(data[, -1], center = FALSE, scale. = FALSE)
 plot(pca, type = "l")
 summary(pca)
 ```
@@ -341,7 +341,7 @@ Let's arbitrarily choose to keep enough covariables to explain at least 99% of t
 According to the summary, we need to keep 17 covariables to do so (99.11% of the variance explained).
 
 ```{r, echo=FALSE}
-pca <- prcomp(data[, -1], center = TRUE, scale. = TRUE, rank. = 17)
+pca <- prcomp(data[, -1], center = FALSE, scale. = FALSE, rank. = 17)
 data_pca <- cbind(as.data.frame(pca$x), diagnosis = data$diagnosis)
 ```
 
