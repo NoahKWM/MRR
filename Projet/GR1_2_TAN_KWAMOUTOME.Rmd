@@ -142,6 +142,7 @@ We will try 5 approaches to study the dataset:
 - Backward Selection
 - Co-variables deletion by highest correlation
 - Co-variables deletion by PCA
+- K-Nearest Neighbors on PCA
 
 We will use a k-fold method to build a model training with the 4 approaches, and predict the diagnosis. We will use K = 5, meaning that 20% of the 569 observations will compose the test set and 80% will compose the training set.
 
@@ -393,6 +394,114 @@ print(paste("Accuracy: ", round(mean(predictions_pca == true_values_pca), 3)))
 With this method, we get a better accuracy than the default one.
 The accuracy is globally better than the one with the backward selection method and the one with the covariables deletion by highest correlation method.
 But, it is still less accurate than the Ridge method, so it should not be privileged over the Ridge method.
+
+
+### K-Nearest Neighbors on PCA
+
+We will use the PCA to have less correlated covariables than the 30 original ones.
+Also, we do not need to interpret the variables used in the K-NN algorithm so the PCA's drawbacks such as low interpretability wouldn't affect us.
+
+```{r, echo=FALSE, warning=FALSE}
+KNN <- 15
+predictions_pca_KNN <- c()
+true_values_pca_KNN <- tab_pca$diagnosis
+for (k in (1:K)) {
+  if (k != K) {
+    indk <- ((k-1) * lblock + 1):(k * lblock);
+  }
+  else {
+    indk <- ((k-1) * lblock + 1):n;
+  }
+  tabTrain_pca_KNN <- tab_pca[-indk, ];
+  for (i in indk) {
+    dist_x <- c();
+    KNN_group <- c()
+    for (j in 1:nrow(tabTrain_pca_KNN)) {
+      x <- tab_pca[i, -ncol(tab_pca)];
+      xi <- tabTrain_pca_KNN[j, -ncol(tab_pca)];
+      distance <- dist(rbind(x, xi), method= "euclidean")
+      dist_x <- c(dist_x, distance)
+      if (j <= KNN) {
+        KNN_group <- c(KNN_group, j)
+      }
+      else {
+        farthest_distance <- max(dist_x[KNN_group])
+        if (distance < farthest_distance) {
+          KNN_group[which.max(dist_x[KNN_group])] <- j
+        }
+      }
+    }
+    sum_diag <- sum(as.numeric(tabTrain_pca_KNN$diagnosis[KNN_group]) - 1);
+    if (sum_diag > KNN / 2) {
+      predictions_pca_KNN <- c(predictions_pca_KNN, 1);
+    }
+    else {
+      predictions_pca_KNN <- c(predictions_pca_KNN, 0);
+    }
+  }
+}
+
+table(true_values_pca_KNN, predictions_pca_KNN)
+print(paste("Accuracy: ", round(mean(predictions_pca_KNN == true_values_pca_KNN), 3)))
+```
+
+
+table(true_values_pca_KNN, predictions_pca_KNN)
+                   predictions_pca_KNN
+true_values_pca_KNN   0   1
+                  0 356   1
+                  1  25 187
+> print(paste("Accuracy: ", round(mean(predictions_pca_KNN == true_values_pca_
+[1] "Accuracy:  0.954"
+
+
+
+
+```{r, echo=FALSE, warning=FALSE}
+KNN <- 20
+predictions_KNN <- c()
+true_values_KNN <- tab$diagnosis
+for (k in (1:K)) {
+  if (k != K) {
+    indk <- ((k-1) * lblock + 1):(k * lblock);
+  }
+  else {
+    indk <- ((k-1) * lblock + 1):n;
+  }
+  tabTrain_KNN <- tab[-indk, ];
+  for (i in indk) {
+    dist_x <- c();
+    KNN_group <- c()
+    for (j in 1:nrow(tabTrain_KNN)) {
+      x <- tab[i, -ncol(tab)];
+      xi <- tabTrain_KNN[j, -ncol(tab)];
+      distance <- dist(rbind(x, xi), method= "euclidean")
+      dist_x <- c(dist_x, distance)
+      if (j <= KNN) {
+        KNN_group <- c(KNN_group, j)
+      }
+      else {
+        farthest_distance <- max(dist_x[KNN_group])
+        if (distance < farthest_distance) {
+          KNN_group[which.max(dist_x[KNN_group])] <- j
+        }
+      }
+    }
+    sum_diag <- sum(as.numeric(tabTrain_KNN$diagnosis[KNN_group]) - 1);
+    if (sum_diag > KNN / 2) {
+      predictions_KNN <- c(predictions_KNN, 1);
+    }
+    else {
+      predictions_KNN <- c(predictions_KNN, 0);
+    }
+  }
+}
+
+table(true_values_KNN, predictions_KNN)
+print(paste("Accuracy: ", round(mean(predictions_KNN == true_values_KNN), 3)))
+```
+
+
 
 
 We can see that the Ridge method is the most accurate, followed by PCA by only a slight percentage. Moreover,
