@@ -120,6 +120,7 @@ We will use the function "scale" to standardize the covariables.
 
 ```{r, echo=FALSE}
 data[, -1] <- scale(data[, -1])
+data$diagnosis <- as.numeric(data$diagnosis) - 1
 ```
 
 Let's now look at the coorelation plot :
